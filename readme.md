@@ -3,7 +3,9 @@ tsh is the minimalist shell created by tatyoke for the stanix operating system
 ## build
 just do 
 ```sh
-make```
+make
+```
 and then launch 
 ```sh
-./tsh```
+./tsh
+```
