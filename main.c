@@ -13,6 +13,14 @@ int main(int argc,char **argv){
 		//shell mode
 		shell_mode();
 	} else {
+		if(!strcmp(argv[1],"-c")){
+			//execute one single command
+			if(argc < 3){
+				printf("tsh : -c option require one argument\n");
+				return -1;
+			}
+			return exec_line(strdup(argv[2]));
+		}
 		script_mode(argv[1]);
 	}
 }
