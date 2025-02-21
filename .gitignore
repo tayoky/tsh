@@ -4,3 +4,6 @@
 #build
 tsh
 tsh.*
+
+#text file form testing script
+*.txt

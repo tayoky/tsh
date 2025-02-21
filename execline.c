@@ -4,6 +4,9 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <fcntl.h>
+
+#define S_ALL S_IRWXU | S_IRWXG | S_IRWXO
 
 char **parse_line(char *line,int *out){
 	char prev_was_space = 1;
@@ -91,6 +94,24 @@ int exec_line(char *line){
 		}
 	}
 
+	int stdout_fd = STDOUT_FILENO;
+
+	//scan for stdout redirection (> and >>)
+	if(argc > 2){
+		if(!strcmp(argv[argc-2],">")){
+			stdout_fd = creat(argv[argc-1],S_ALL);
+			argc-=2;
+		} else if (!strcmp(argv[argc-2],">>")){
+			stdout_fd = open(argv[argc-1],O_CREAT | O_APPEND | O_WRONLY,S_ALL);
+			argc -= 2;
+		}
+
+		if(stdout_fd < 0){
+			printf("%s : %s\n",argv[argc-1],strerror(errno));
+			return -1;
+		}
+	}
+
 	//fork and then execute
 	pid_t child = fork();
 	if(child < 0){
@@ -100,6 +121,11 @@ int exec_line(char *line){
 
 	if(child == 0){
 		//child code
+
+		//copy stdout
+		dup2(stdout_fd,STDOUT_FILENO);
+
+		//exec
 		execvp(argv[0],argv);
 		printf("%s : %s\n",argv[0],strerror(errno));
 		exit(errno);

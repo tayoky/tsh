@@ -1,3 +1,3 @@
-#!~/git-repo/tsh/tsh
+#!/bin/tsh
 
 echo hello from shell script !!!
