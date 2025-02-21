@@ -100,10 +100,14 @@ int exec_line(char *line){
 	if(argc > 2){
 		if(!strcmp(argv[argc-2],">")){
 			stdout_fd = creat(argv[argc-1],S_ALL);
+
 			argc-=2;
+			argv[argc] = NULL;
 		} else if (!strcmp(argv[argc-2],">>")){
 			stdout_fd = open(argv[argc-1],O_CREAT | O_APPEND | O_WRONLY,S_ALL);
+
 			argc -= 2;
+			argv[argc] = NULL;
 		}
 
 		if(stdout_fd < 0){

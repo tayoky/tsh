@@ -3,4 +3,4 @@
 #first create a file with some content
 echo first > append.txt
 #then append
-echo second > append.txt
+echo second >> append.txt
