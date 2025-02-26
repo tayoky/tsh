@@ -52,7 +52,21 @@ int shell_mode(){
 		//show the prompt
 		char cwd[256];
 		getcwd(cwd,255);
-		printf("%s$ ",cwd);
+	
+		char *home = getenv("HOME");
+
+		//default home
+		if(!home){
+			home = malloc(2);
+			strcpy(home,"/");
+		}
+
+		//if in home directory show ~
+		if(!strncmp(home,cwd,strlen(home))){
+			printf("~%s $ ",&cwd[strlen(home)]);
+		} else {
+			printf("%s $ ",cwd);
+		}
 		char line[128];
 		fgets(line,128,stdin);
 
