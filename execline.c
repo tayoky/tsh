@@ -35,7 +35,7 @@ char **parse_line(char *line,int *out){
 	}
 
 	//add the NULL at the end
-	argv = realloc(argv,argc + 1);
+	argv = realloc(argv,(argc + 1) * sizeof(char *));
 	argv[argc] = NULL;
 
 	*out = argc;
