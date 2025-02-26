@@ -34,7 +34,7 @@ int script_mode(const char *path){
 
 	char line[256];
 	
-	while(fgets(line,sizeof(line),file)){
+	while(fgets(line,sizeof(line) - 1,file)){
 		if(line[0] == '#'){
 			//it's a comment
 			//skip

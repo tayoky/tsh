@@ -28,7 +28,7 @@ char **parse_line(char *line,int *out){
 		//check if we just start a new arg
 		if(prev_was_space){
 			prev_was_space = 0;
-			argv = realloc(argv,argc + 1);
+			argv = realloc(argv,(argc + 1) * sizeof(char *));
 			argv[argc] = &line[i];
 			argc++;
 		}
