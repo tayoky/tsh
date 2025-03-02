@@ -13,6 +13,9 @@ int main(int argc,char **argv){
 		//shell mode
 		shell_mode();
 	} else {
+		if(!strcmp(argv[1],"--version")){
+			return exec_line("version");
+		}
 		if(!strcmp(argv[1],"-c")){
 			//execute one single command
 			if(argc < 3){

@@ -94,6 +94,13 @@ int exec_line(char *line){
 		}
 	}
 
+	//version built in
+	if(!strcmp(argv[0],"version")){
+		printf("tsh version 0.1.0\n");
+		printf("2025 tayoky\n");
+		return 0;
+	}
+
 	int stdout_fd = STDOUT_FILENO;
 
 	//scan for stdout redirection (> and >>)
