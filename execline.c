@@ -5,6 +5,26 @@
 #include <errno.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include "builtin.h"
+
+//list of built in command
+struct cmd{
+	char *name;
+	int (*function)(int,char**);
+};
+
+struct cmd builtin[]= {
+	{
+		.name = "exit",
+		.function = texit
+	},{
+		.name = "cd",
+		.function = cd
+	},{
+		.name = "version",
+		.function = version
+	}
+};
 
 #define S_ALL S_IRWXU | S_IRWXG | S_IRWXO
 
@@ -53,52 +73,11 @@ int exec_line(char *line){
 	}
 
 	//first check for built in command(exit,cd)
-	
-	//exit built in
-	if(!strcmp(argv[0],"exit")){
-		if(argc == 1){
-			exit(0);
-		} else if(argc == 2){
-			int code = atoi(argv[1]);
-			if(!code){
-				printf("exit : exit code must be a numeric number\n");
-				return -1;
-			}
-			exit(code);
-		} else {
-			printf("exit : too many arguments\n");
-			return -1;
+	int builtin_count = sizeof(builtin) / sizeof(builtin[0]);
+	for(int i=0;i<builtin_count;i++){
+		if(!strcmp(argv[0],builtin[i].name)){
+			return builtin[i].function(argc,argv);
 		}
-	}
-
-	//cd built in
-	if(!strcmp(argv[0],"cd")){
-		if(argc == 1){
-			char *home = getenv("HOME");
-			if(!home){
-				chdir("/");
-				return 0;
-			} else {
-				chdir(home);
-				return 0;
-			}
-		} else if(argc == 2){
-			int code = chdir(argv[1]);
-			if(code != 0){
-				printf("cd : %s\n",strerror(errno));
-			}
-			return 0;
-		} else {
-			printf("cd too many arguments\n");
-			return -1;
-		}
-	}
-
-	//version built in
-	if(!strcmp(argv[0],"version")){
-		printf("tsh version 0.1.0\n");
-		printf("2025 tayoky\n");
-		return 0;
 	}
 
 	int stdout_fd = STDOUT_FILENO;

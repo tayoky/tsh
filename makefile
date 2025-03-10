@@ -1,6 +1,7 @@
 SRC = $(shell find ./ -name "*.c")
 OBJ = ${SRC:.c=.o}
 SYSROOT =
+CFLAGS += -I ./include
 
 all : tsh
 tsh : ${OBJ}
