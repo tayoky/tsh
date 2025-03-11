@@ -23,6 +23,9 @@ struct cmd builtin[]= {
 	},{
 		.name = "version",
 		.function = version
+	},{
+		.name = "export",
+		.function = export
 	}
 };
 
