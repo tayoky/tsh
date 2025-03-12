@@ -3,6 +3,7 @@ include config.mk
 SRC = $(shell find ./ -name "*.c")
 OBJ = ${SRC:.c=.o}
 CFLAGS += -I ./include
+CFLAGS += -DHOST=\"${HOST}\"
 
 all : tsh
 tsh : ${OBJ}
