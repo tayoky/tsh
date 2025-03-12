@@ -7,3 +7,6 @@ tsh.*
 
 #text file form testing script
 *.txt
+
+#conf
+config.mk
