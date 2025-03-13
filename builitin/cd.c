@@ -10,18 +10,24 @@ int cd(int argc,char **argv){
 		char *home = getenv("HOME");
 		if(!home){
 			chdir("/");
-			return 0;
 		} else {
 			chdir(home);
-			return 0;
 		}
 	} else if(argc == 2){
 		int code = chdir(argv[1]);
 		if(code != 0){
 			printf("cd : %s\n",strerror(errno));
+			return errno;
 		}
-		return 0;
 	} else {			printf("cd too many arguments\n");
 		return -1;
 	}
+
+	//update $PWD
+	char cwd[256];
+	getcwd(cwd,255);
+	char buf[256];
+	snprintf(buf,256,"PWD=%s",cwd);
+	putenv(buf);
+	return 0;
 }
