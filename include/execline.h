@@ -3,4 +3,6 @@
 
 int exec_line(char *line);
 
+extern int lock;
+
 #endif

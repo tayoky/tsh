@@ -7,10 +7,15 @@
 #include <fcntl.h>
 #include "builtin.h"
 
+
+//lock used by if else and that stuff
+int lock = 0;
+
 //list of built in command
 struct cmd{
 	char *name;
 	int (*function)(int,char**);
+	int bypass_lock;
 };
 
 struct cmd builtin[]= {
@@ -26,6 +31,17 @@ struct cmd builtin[]= {
 	},{
 		.name = "export",
 		.function = export
+	},{
+		.name = "if",
+		.function = _if,
+		.bypass_lock = 1
+	},{
+		.name = "fi",
+		.function = fi,
+		.bypass_lock = 1
+	},{
+		.name = "then",
+		.function = then
 	}
 };
 
@@ -52,7 +68,7 @@ char **parse_line(char *line,int *out){
 			prev_was_backslash = 0;
 			continue;
 		}
-		if(line[i] == ' ' && !in_string){
+		if((line[i] == ' ' || line[i] == '\t') && !in_string){
 			prev_was_space = 1;
 			continue;
 		}
@@ -100,8 +116,16 @@ int exec_line(char *line){
 	int builtin_count = sizeof(builtin) / sizeof(builtin[0]);
 	for(int i=0;i<builtin_count;i++){
 		if(!strcmp(argv[0],builtin[i].name)){
+			//if locked check
+			if(lock && !builtin[i].bypass_lock){
+				return 0;
+			}
 			return builtin[i].function(argc,argv);
 		}
+	}
+
+	if(lock){
+		return 0;
 	}
 
 	int stdout_fd = STDOUT_FILENO;

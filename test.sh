@@ -10,7 +10,7 @@ for TEST in $TESTS ; do
 	if [ "$(../tsh $TEST)" != "$(cat ${TEST}.out)" ] ; then
 		echo "fail $TEST"
 		"../tsh" "$TEST"  | diff - "${TEST}.out"
-		#exit 1
+		exit 1
 	fi
 done
 
