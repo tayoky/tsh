@@ -30,21 +30,29 @@ struct cmd builtin[]= {
 };
 
 #define S_ALL S_IRWXU | S_IRWXG | S_IRWXO
+#define OUT(c) argv[argc-1][arg_size] = c;\
+		arg_size++;\
+		argv[argc-1] = realloc(argv[argc-1],arg_size + 1);\
+		argv[argc-1][arg_size] = '\0'
 
 char **parse_line(char *line,int *out){
 	char prev_was_space = 1;
 	char in_string = 0;
+	char prev_was_backslash = 0;
 	int argc = 0;
 	char **argv = malloc(1);
 	size_t arg_size = 0;
 
 	for(int i=0;line[i];i++){
 		if(line[i] == '\n'){
-			line[i] = '\0';
 			break;
 		}
+		if(prev_was_backslash){
+			OUT(line[i]);
+			prev_was_backslash = 0;
+			continue;
+		}
 		if(line[i] == ' ' && !in_string){
-			line[i] = '\0';
 			prev_was_space = 1;
 			continue;
 		}
@@ -62,11 +70,12 @@ char **parse_line(char *line,int *out){
 			in_string = 1-in_string;
 			continue;
 		}
+		if(line[i] == '\\'){
+			prev_was_backslash = 1;
+			continue;
+		}
 
-		argv[argc-1][arg_size] = line[i];
-		arg_size++;
-		argv[argc-1] = realloc(argv[argc-1],arg_size + 1);
-		argv[argc-1][arg_size] = '\0';
+		OUT(line[i]);
 	}
 
 	//add the NULL at the end
