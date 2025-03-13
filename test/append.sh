@@ -4,3 +4,5 @@
 echo first > append.txt
 #then append
 echo second >> append.txt
+
+cat append.txt

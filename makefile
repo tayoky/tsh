@@ -14,5 +14,7 @@ clean :
 	rm ${OBJ}
 install : all
 	cp tsh ${PREFIX}/bin
+test : tsh
+	./test.sh
 config.mk :
 	$(error "run ./configure before runing make")
