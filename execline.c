@@ -107,7 +107,6 @@ char **parse_line(char *line,int *out){
 			char *value = getenv(name);
 			free(name);
 			if(!value){
-				printf("%s not found\n",name);
 				continue;
 			}
 			for(int j=0;value[j];j++){
