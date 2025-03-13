@@ -45,7 +45,7 @@ struct cmd builtin[]= {
 	}
 };
 
-#define S_ALL S_IRWXU | S_IRWXG | S_IRWXO
+#define S_ALL S_IRUSR | S_IWUSR
 #define OUT(c) argv[argc-1][arg_size] = c;\
 		arg_size++;\
 		argv[argc-1] = realloc(argv[argc-1],arg_size + 1);\
@@ -78,12 +78,41 @@ char **parse_line(char *line,int *out){
 			prev_was_space = 0;
 			argv = realloc(argv,(argc + 1) * sizeof(char *));
 			argv[argc] = malloc(1);
+			argv[argc][0] = '\0';
 			argc++;
 			arg_size = 0;
 		}
 
 		if(line[i] == '"'){
 			in_string = 1-in_string;
+			continue;
+		}
+		if(line[i] == '$'){
+			i++;
+			char end = ' ';
+			if(line[i] == '{'){
+				i++;
+				end = '}';
+			}
+			char *start = &line[i];
+			size_t len = 0;
+			while(line[i] != '\n' && line[i] != end){
+				i++;
+				len++;
+			}
+			if(line[i] != '{'){
+				i--;
+			}
+			char *name = strndup(start,len);
+			char *value = getenv(name);
+			free(name);
+			if(!value){
+				printf("%s not found\n",name);
+				continue;
+			}
+			for(int j=0;value[j];j++){
+				OUT(value[j]);
+			}
 			continue;
 		}
 		if(line[i] == '\\'){
