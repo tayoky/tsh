@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "execline.h"
+#include "tsh.h"
 
 int shell_mode();
 int script_mode(const char *path);
@@ -38,11 +39,8 @@ int script_mode(const char *path){
 	char line[256];
 	
 	while(fgets(line,sizeof(line) - 1,file)){
-		if(line[0] == '#'){
-			//it's a comment
-			//skip
-			continue;
-		}
+		//replace \n with \0
+		*strchr(line,'\n') = '\0';
 		exec_line(line);
 	}
 
@@ -70,11 +68,12 @@ int shell_mode(){
 		} else {
 			printf("%s $ ",cwd);
 		}
-		char line[128];
-		fgets(line,128,stdin);
+		char *line = prompt();
 
 
 		//execute the line
 		exec_line(line);
+
+		free(line);
 	}
 }

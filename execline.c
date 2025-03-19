@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include "builtin.h"
+#include "tsh.h"
 
 
 //lock used by if else and that stuff
@@ -131,75 +132,29 @@ char **parse_line(char *line,int *out){
 }
 
 int exec_line(char *line){
-	//first parse the line
-	int argc = 0;
-	char **argv = parse_line(line,&argc);
+	//first tokenize
+	token *tokens = tokenize(line);
 
-	//empty command case
-	if(!argc){
-		return 0;
-	}
-
-	//first check for built in command(exit,cd)
-	int builtin_count = sizeof(builtin) / sizeof(builtin[0]);
-	for(int i=0;i<builtin_count;i++){
-		if(!strcmp(argv[0],builtin[i].name)){
-			//if locked check
-			if(lock && !builtin[i].bypass_lock){
-				return 0;
-			}
-			return builtin[i].function(argc,argv);
+	while(tokens->type){
+		switch (tokens->type){
+		case T_STRING :
+			printf("string :");
+			break;
+		case T_VAR :
+			printf("var :");
+			break;
+		case T_PIPE :
+			printf("<pipe>\n");
+			tokens++;
+			continue;
+		case T_ARGSTART :
+			printf("<argstart>\n");
+			tokens++;
+			continue;
 		}
+		printf("%s\n",tokens->value);
+		tokens++;
 	}
-
-	if(lock){
-		return 0;
-	}
-
-	int stdout_fd = STDOUT_FILENO;
-
-	//scan for stdout redirection (> and >>)
-	if(argc > 2){
-		if(!strcmp(argv[argc-2],">")){
-			stdout_fd = creat(argv[argc-1],S_ALL);
-
-			argc-=2;
-			argv[argc] = NULL;
-		} else if (!strcmp(argv[argc-2],">>")){
-			stdout_fd = open(argv[argc-1],O_CREAT | O_APPEND | O_WRONLY,S_ALL);
-
-			argc -= 2;
-			argv[argc] = NULL;
-		}
-
-		if(stdout_fd < 0){
-			printf("%s : %s\n",argv[argc-1],strerror(errno));
-			return -1;
-		}
-	}
-
-	//fork and then execute
-	pid_t child = fork();
-	if(child < 0){
-		printf("fork : %s\n",strerror(errno));
-		return -1;
-	}
-
-	if(child == 0){
-		//child code
-
-		//copy stdout
-		dup2(stdout_fd,STDOUT_FILENO);
-
-		//exec
-		execvp(argv[0],argv);
-		printf("%s : %s\n",argv[0],strerror(errno));
-		exit(errno);
-	}
-
-	int status;
-	waitpid(child,&status,0);
-	
 
 	return 0;
 }
