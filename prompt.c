@@ -12,6 +12,10 @@
 
 struct termios old,new;
 
+char **history = NULL;
+int history_len = 0;
+int history_index = 0;
+
 void enable_raw(){
 	tcgetattr(STDIN_FILENO,&old);
 	new = old;
@@ -42,53 +46,17 @@ static void move(int mv){
 	fflush(stdout);
 }
 
-static void parse_esc(int *cursor,int len){
-	//first read two char
-	char c1 = getchar();
-	char c2 = getchar();
+static void reset(char *line,int *cursor,int *len){
+	//reset cursor pos
+	move(-*cursor);
+	*cursor = 0;
 
-	//ignore seqence wihout an [
-	if(c1 != '['){
-		return;
+	for(int i=0; i<*len; i++){
+		putchar(' ');
 	}
 
-	switch(c2){
-	case 'D' :
-		//right key
-		if(*cursor <= 0){
-			alert();
-			break;
-		}
-		(*cursor)--;
-		move(-1);
-		break;
-	case 'C' :
-		//left key
-		if(*cursor >= len){
-			alert();
-			break;
-		}
-		(*cursor)++;
-		move(1);
-		break;
-	default :
-		putchar(c2);
-		fflush(stdout);
-	}
-}
-
-static void erase(char *line,int *cursor,int *len){
-	//check there are something to erase
-	if(*cursor <= 0){
-		alert();
-		return;
-	}
-	//offset everything after the cursor
-	
-	memmove(&line[(*cursor)-1],&line[(*cursor)],(*len) - (*cursor));
-	move(-1);
-	(*cursor)--;
-	(*len)--;
+	move(-*len);
+	*len = 0;
 }
 
 static void reprint(char *line,int cursor,int len){
@@ -113,9 +81,103 @@ static void reprint(char *line,int cursor,int len){
 	fflush(stdout);
 }
 
+static void load_history(char *line,int *cursor,int *len){
+	//TODO : maybee update entry in the history ???
+	
+	reset(line,cursor,len);
+
+	//special case for last entry
+	if(history_index == history_len){
+		reprint(line,*cursor,*len);
+		return;
+	}
+
+	//load from history
+	*len = strlen(history[history_index]);
+	strcpy(line,history[history_index]);
+
+	//set cursor to the end
+	*cursor = strlen(line);
+	move(*cursor);
+
+	reprint(line,*cursor,*len);
+}
+
+
+static void parse_esc(char *line,int *cursor,int *len){
+	//first read two char
+	char c1 = getchar();
+	char c2 = getchar();
+
+	//ignore seqence wihout an [
+	if(c1 != '['){
+		return;
+	}
+
+	switch(c2){
+	case 'D' :
+		//right key
+		if(*cursor <= 0){
+			alert();
+			break;
+		}
+		(*cursor)--;
+		move(-1);
+		break;
+	case 'C' :
+		//left key
+		if(*cursor >= *len){
+			alert();
+			break;
+		}
+		(*cursor)++;
+		move(1);
+		break;
+	case 'A' :
+		//up key
+		if(history_index <= 0){
+			alert();
+			break;
+		}
+		history_index--;
+		load_history(line,cursor,len);
+		break;
+	case 'B' :
+		if(history_index >= history_len){
+			break;
+		}
+		history_index++;
+		load_history(line,cursor,len);
+		break;
+	default :
+		putchar(c2);
+		fflush(stdout);
+	}
+}
+
+static void erase(char *line,int *cursor,int *len){
+	//check there are something to erase
+	if(*cursor <= 0){
+		alert();
+		return;
+	}
+	//offset everything after the cursor
+	
+	memmove(&line[(*cursor)-1],&line[(*cursor)],(*len) - (*cursor));
+	move(-1);
+	(*cursor)--;
+	(*len)--;
+}
+
 #endif
 
 char *prompt(){
+	//init history if needed
+	if(!history){
+		history = malloc(1);
+		history_len = 0;
+	}
+	history_index = history_len;
 	char *line = malloc(256);
 #ifdef NO_TERMIOS
 	fgets(line,255,stdin);
@@ -145,7 +207,7 @@ char *prompt(){
 
 		if(c == '\033'){
 			//espace sequence comming
-			parse_esc(&cursor,len);
+			parse_esc(line,&cursor,&len);
 			continue;
 		}
 
@@ -175,5 +237,11 @@ char *prompt(){
 	restore_term();
 	
 #endif
+	//add to history if not empty
+	if(line[0]){
+		history_len++;
+		history = realloc(history,history_len * sizeof(char *));
+		history[history_len-1] = strdup(line);
+	}
 	return line;
 }
