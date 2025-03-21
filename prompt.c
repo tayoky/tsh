@@ -81,9 +81,16 @@ static void reprint(char *line,int cursor,int len){
 	fflush(stdout);
 }
 
-static void load_history(char *line,int *cursor,int *len){
-	//TODO : maybee update entry in the history ???
+static void save_history(char *line,int *cursor,int *len){
+	if(history_index == history_len){
+		return;
+	}
 	
+	free(history[history_index]);
+	history[history_index] = strndup(line,(*len));
+}
+
+static void load_history(char *line,int *cursor,int *len){
 	reset(line,cursor,len);
 
 	//special case for last entry
@@ -139,15 +146,30 @@ static void parse_esc(char *line,int *cursor,int *len){
 			alert();
 			break;
 		}
+		save_history(line,cursor,len);
 		history_index--;
 		load_history(line,cursor,len);
 		break;
 	case 'B' :
-		if(history_index >= history_len){
+		//down key
+		if(history_index >= history_len - 1){
+			alert();
 			break;
 		}
+		save_history(line,cursor,len);
 		history_index++;
 		load_history(line,cursor,len);
+		break;
+	case 'H' :
+		//home key
+		//go to the start
+		move(-*cursor);
+		*cursor = 0;
+		break;
+	case 'F' :
+		//end key
+		move((*len)-(*cursor));
+		*cursor = *len;
 		break;
 	default :
 		putchar(c2);
@@ -178,6 +200,11 @@ char *prompt(){
 		history_len = 0;
 	}
 	history_index = history_len;
+	//add a empty entry
+	history_len++;
+	history = realloc(history,history_len * sizeof(char *));
+	history[history_index] = strdup("");
+
 	char *line = malloc(256);
 #ifdef NO_TERMIOS
 	fgets(line,255,stdin);
@@ -205,16 +232,20 @@ char *prompt(){
 			break;
 		}
 
-		if(c == '\033'){
+		switch(c){
+		case '\033' :
 			//espace sequence comming
 			parse_esc(line,&cursor,&len);
 			continue;
-		}
-
-		if(c == 0x7f){
+		case 0x7f :
 			erase(line,&cursor,&len);
 			reprint(line,cursor,len);
 			continue;
+		case '\t' :
+			//TODO : auto completion
+			//or something like that
+			continue;
+
 		}
 
 		//insert a char
@@ -237,11 +268,16 @@ char *prompt(){
 	restore_term();
 	
 #endif
-	//add to history if not empty
-	if(line[0]){
-		history_len++;
+	//save to last history entry
+	history_index = history_len - 1 ;
+	free(history[history_index]);
+	history[history_index] = strdup(line);
+
+	//remove from history if empty
+	if(!line[0]){
+		free(history[history_index]);
+		history_len--;
 		history = realloc(history,history_len * sizeof(char *));
-		history[history_len-1] = strdup(line);
 	}
 	return line;
 }
