@@ -64,6 +64,9 @@ token *tokenize(const char *line){
 			in_string = 1 - in_string;
 			continue;
 		case '$' :
+			if(prev_is_space){
+				append_token(&list)->type = T_ARGSTART;
+			}
 			in_var = 1;
 			append_token(&list)->type = T_VAR;
 			prev_is_space = 0;
