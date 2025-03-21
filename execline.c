@@ -134,6 +134,7 @@ char **parse_line(char *line,int *out){
 int exec_line(char *line){
 	//first tokenize
 	token *tokens = tokenize(line);
+	token *lexer = tokens;
 
 	while(tokens->type){
 		switch (tokens->type){
@@ -154,6 +155,21 @@ int exec_line(char *line){
 		}
 		printf("%s\n",tokens->value);
 		tokens++;
+	}
+
+	char ****top = parse(lexer);
+	int i = 0;
+	int j = 0;
+	int k = 0;
+	while(top[i]){
+		while(top[i][j]){
+			while(top[i][j][k]){
+				printf("%s\n",top[i][j][k]);
+				k++;
+			}
+			j++;
+		}
+		i++;
 	}
 
 	return 0;
