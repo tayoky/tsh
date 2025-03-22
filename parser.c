@@ -69,6 +69,7 @@ char ****parse(token *tokens){
 	while(tokens->type){
 		if(prev_is_sep){
 			new_command_line(&top);
+			prev_is_pipe = 1;
 			prev_is_sep = 0;
 		}
 		if(prev_is_pipe){
@@ -78,7 +79,7 @@ char ****parse(token *tokens){
 		switch(tokens->type){
 		case T_SEP :
 			prev_is_sep = 1;
-			continue;
+			break;
 		case T_PIPE :
 			prev_is_pipe = 1;
 			break;

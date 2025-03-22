@@ -56,6 +56,10 @@ token *tokenize(const char *line){
 			append_token(&list)->type = T_PIPE;
 			prev_is_space = 1;
 			continue;
+		case '>' :
+			if(in_string)break;
+			append_token(&list)->type = T_REDIRECTION;
+			prev_is_space = 1;
 		case ' ' :
 			if(in_string)break;
 			prev_is_space = 1;
@@ -87,9 +91,10 @@ token *tokenize(const char *line){
 			}
 			break;
 		case ';' :
-			if(in_string)continue;
+			if(in_string)break;
 			append_token(&list)->type = T_SEP;
 			prev_is_space = 1;
+			continue;
 		case '\\' :
 			backslash = 1;
 			continue;
