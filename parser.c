@@ -79,6 +79,9 @@ char ****parse(token *tokens){
 		case T_SEP :
 			prev_is_sep = 1;
 			continue;
+		case T_PIPE :
+			prev_is_pipe = 1;
+			break;
 		case T_ARGSTART :
 			new_argument();
 			break;

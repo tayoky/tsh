@@ -47,88 +47,33 @@ struct cmd builtin[]= {
 };
 
 #define S_ALL S_IRUSR | S_IWUSR
-#define OUT(c) argv[argc-1][arg_size] = c;\
-		arg_size++;\
-		argv[argc-1] = realloc(argv[argc-1],arg_size + 1);\
-		argv[argc-1][arg_size] = '\0'
 
-char **parse_line(char *line,int *out){
-	char prev_was_space = 1;
-	char in_string = 0;
-	char prev_was_backslash = 0;
-	int argc = 0;
-	char **argv = malloc(1);
-	size_t arg_size = 0;
+pid_t spawn(char **arg){
+	//check for built in
+	for(int i=0; i< sizeof(builtin) / sizeof(*builtin);i++){
+		if(!strcmp(arg[0],builtin[i].name)){
+			int argc = 0;
+			while(arg[argc]){
+				argc++;
+			}
+			int ret = builtin[i].function(argc,arg);
 
-	for(int i=0;line[i];i++){
-		if(line[i] == '\n'){
-			break;
-		}
-		if(prev_was_backslash){
-			OUT(line[i]);
-			prev_was_backslash = 0;
-			continue;
-		}
-		if((line[i] == ' ' || line[i] == '\t') && !in_string){
-			prev_was_space = 1;
-			continue;
-		}
-
-		//check if we just start a new arg
-		if(prev_was_space){
-			prev_was_space = 0;
-			argv = realloc(argv,(argc + 1) * sizeof(char *));
-			argv[argc] = malloc(1);
-			argv[argc][0] = '\0';
-			argc++;
-			arg_size = 0;
-		}
-
-		if(line[i] == '"'){
-			in_string = 1-in_string;
-			continue;
-		}
-		if(line[i] == '$'){
-			i++;
-			char end = ' ';
-			if(line[i] == '{'){
-				i++;
-				end = '}';
+			pid_t child = fork();
+			if(!child){
+				//dummy child
+				exit(ret);
 			}
-			char *start = &line[i];
-			size_t len = 0;
-			while(line[i] != '\n' && line[i] != end){
-				i++;
-				len++;
-			}
-			if(line[i] != '{'){
-				i--;
-			}
-			char *name = strndup(start,len);
-			char *value = getenv(name);
-			free(name);
-			if(!value){
-				continue;
-			}
-			for(int j=0;value[j];j++){
-				OUT(value[j]);
-			}
-			continue;
+			return child;
 		}
-		if(line[i] == '\\'){
-			prev_was_backslash = 1;
-			continue;
-		}
-
-		OUT(line[i]);
 	}
-
-	//add the NULL at the end
-	argv = realloc(argv,(argc + 1) * sizeof(char *));
-	argv[argc] = NULL;
-
-	*out = argc;
-	return argv;
+			
+	pid_t child = fork();
+	if(!child){
+		execvp(arg[0],arg);
+		perror(arg[0]);
+		exit(1);
+	}
+	return child;
 }
 
 int exec_line(char *line){
@@ -136,40 +81,30 @@ int exec_line(char *line){
 	token *tokens = tokenize(line);
 	token *lexer = tokens;
 
-	while(tokens->type){
-		switch (tokens->type){
-		case T_STRING :
-			printf("string :");
-			break;
-		case T_VAR :
-			printf("var :");
-			break;
-		case T_PIPE :
-			printf("<pipe>\n");
-			tokens++;
-			continue;
-		case T_ARGSTART :
-			printf("<argstart>\n");
-			tokens++;
-			continue;
-		}
-		printf("%s\n",tokens->value);
-		tokens++;
-	}
+	char ****top = parse(tokens);
 
-	char ****top = parse(lexer);
+	//now free the tokens
+	token *tok = tokens; 
+	while(tok->type){
+		free(tok->value);
+		tok++;
+	}
+	free(tok->value);
+	free(tokens);
+
 	int i = 0;
 	int j = 0;
 	int k = 0;
 	while(top[i]){
 		while(top[i][j]){
-			while(top[i][j][k]){
-				printf("%s\n",top[i][j][k]);
-				k++;
-			}
+			spawn(top[i][j]);
 			j++;
 		}
 		i++;
+		while(j > 0){
+			waitpid(-1,0,0);
+			j--;
+		}
 	}
 
 	return 0;
