@@ -30,7 +30,6 @@ void restore_term(){
 
 static void alert(){
 	putchar('\a');
-	fflush(stdout);
 }
 
 //move the TERMINAL cursor
@@ -43,7 +42,6 @@ static void move(int mv){
 	}
 
 	printf(ESC"[%i%c",mv,c);
-	fflush(stdout);
 }
 
 static void reset(char *line,int *cursor,int *len){
@@ -57,6 +55,8 @@ static void reset(char *line,int *cursor,int *len){
 
 	move(-*len);
 	*len = 0;
+
+	fflush(stdout);
 }
 
 static void reprint(char *line,int cursor,int len){
@@ -173,8 +173,8 @@ static void parse_esc(char *line,int *cursor,int *len){
 		break;
 	default :
 		putchar(c2);
-		fflush(stdout);
 	}
+	fflush(stdout);
 }
 
 static void erase(char *line,int *cursor,int *len){
