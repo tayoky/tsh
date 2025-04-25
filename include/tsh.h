@@ -26,6 +26,11 @@ typedef struct chain {
 	struct redir *redirections;
 } chain;
 
+typedef struct builtin {
+	int (*func)(int,char **);
+	char *name;
+} builtin;
+
 #define T_NULL 0
 #define T_STR  1
 #define T_SPACE ' '
@@ -36,6 +41,10 @@ typedef struct chain {
 
 #define REDIR_IN  0x01
 #define REDIR_OUT 0x02
+
+extern int lock;
+
+extern builtin builtin_cmd[2];
 
 char *prompt();
 

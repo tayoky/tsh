@@ -6,16 +6,15 @@ tsh is a minimalist shell that focus on simplicity and portability
 # features
 features of the `rewrite` branch :
 - basic lexer and parser
+- built in command such as `cd` and `exit`
 - pipes
 - line editing
 - history
 
 # lack of features
 features availible on the `main` branch but not on the rewrite :
-- built in commands
 - environement variable management
 - output redirection
-- cd command
 - if statement
 
 # build

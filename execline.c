@@ -1,11 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include "tsh.h"
 
+int lock = 0;
+
 static int start(cmd *command,int out,int in,int del){
+	//check for built in first
+	for(int i=0;i < sizeof(builtin_cmd) / sizeof(builtin); i++){
+		if(!strcmp(command->argv[0],builtin_cmd[i].name)){
+			return builtin_cmd[i].func(command->argc,command->argv);
+		}
+	}
+
 	pid_t child = fork();
 	if(!child){
 		if(del){
