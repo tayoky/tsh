@@ -9,6 +9,7 @@ int shell_mode();
 int script_mode(const char *path);
 
 int main(int argc,char **argv){
+	init(argc,argv);
 	if(argc < 2){
 		//shell mode
 		shell_mode();

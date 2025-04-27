@@ -10,6 +10,7 @@ DEF(export);
 DEF(_if);
 DEF(fi);
 DEF(then);
+DEF(version);
 
 builtin builtin_cmd[] = {
 	{.lock_bypass=0,.func = cd    ,.name = "cd"},
@@ -18,4 +19,5 @@ builtin builtin_cmd[] = {
 	{.lock_bypass=1,.func = _if   ,.name = "if"},
 	{.lock_bypass=1,.func = fi    ,.name = "fi"},
 	{.lock_bypass=0,.func = then  ,.name = "then"},
+	{.func = version ,.name = "version"},
 };

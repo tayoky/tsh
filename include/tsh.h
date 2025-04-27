@@ -45,7 +45,9 @@ typedef struct builtin {
 
 extern int lock;
 
-extern builtin builtin_cmd[6];
+extern builtin builtin_cmd[7];
+
+void init(int argc,char **argv);
 
 char *prompt();
 
