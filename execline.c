@@ -27,8 +27,10 @@ static int start(cmd *command,int out,int in,int del){
 		if(del){
 			close(del);
 		}
+#ifndef NO_REDIR
 		dup2(out,STDOUT_FILENO);
 		dup2(in ,STDIN_FILENO);
+#endif
 		if(out != STDOUT_FILENO){
 			close(out);
 		}
@@ -49,32 +51,40 @@ static void execute(chain *ch){
 	int in = STDIN_FILENO;
 	int out = STDOUT_FILENO;
 	while(cur){
+#ifndef NO_PIPE
 		int pipefd[2];
+#endif
 		out = STDOUT_FILENO;
 
 		//if there are something after us
 		//we create a pipe and use it
+#ifndef NO_PIPE
 		if(cur->next){
 			pipe(pipefd);
 			out = pipefd[1];
 			start(cur,out,in,pipefd[0]);
-		} else {
+		} else
+#endif
+		{
 			start(cur,out,in,0);
 		}
 
+#ifndef NO_PIPE
 		//do some cleanup if needed
 		if(in != STDIN_FILENO){
 			close(in);
 		}
-
+#endif
 		in = STDIN_FILENO;
 
+#ifndef NO_PIPE
 		//if there are somthing after us
 		//we connect the stdin of the next command
 		if(cur->next){
 			in = pipefd[0];
 			close(pipefd[1]);
 		}
+#endif
 
 		cur = cur->next;
 		count++;
@@ -138,7 +148,15 @@ int exec_line(char *line){
 	
 	//TODO : free chain
 	cleanup:
-	//TODO: free tokens	
+	cur = tokens;
+	while(cur){
+		token *next = cur->next;
+		if(cur->type == T_STR){
+			free(cur->value);
+		}
+		free(cur);
+		cur = next;
+	}
 	ret:
 	return 0;
 }

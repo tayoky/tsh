@@ -18,6 +18,7 @@ static void add(token *prev,token *new){
 	prev->next = new;
 }
 
+//TODO : simplifier shloud free the token on error
 token *simplifier(token *tokens){
 	token *prev = NULL;
 	for(token *current = tokens;current->type;current = current->next){
