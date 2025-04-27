@@ -8,6 +8,8 @@ PREFIX="/usr/local"
 
 OPT=""
 
+CFLAGS=""
+
 for i in "$@"; do
 	case $i in
 		--with-sysroot=*)
@@ -18,6 +20,10 @@ for i in "$@"; do
 			CC="${i#*=}"
 			shift # past argument=value
 			;;
+		--with-CFLAGS=*)
+			CFLAGS="${i#*=}"
+			shift
+			;;
 		--host=*)
 			HOST="${i#*=}"
 			shift # past argument=value
@@ -27,7 +33,11 @@ for i in "$@"; do
 			shift # past argument=value
 			;;
 		--no-termios)
-			OPT="-DNO-TERMIOS $OPT"
+			OPT="-DNO_TERMIOS $OPT"
+			shift
+			;;
+		--no-pipe|--no-pipes)
+			OPT="-DNO_PIPE $OPT"
 			shift
 			;;
 		--debug)
@@ -67,4 +77,4 @@ echo "#generated automatically by ./configure" > config.mk
 echo "HOST=$HOST" >> config.mk
 echo "PREFIX=$PREFIX" >> config.mk
 echo "CC=$CC" >> config.mk
-echo "CFLAGS=$OPT" >> config.mk
+echo "CFLAGS=$CFLAGS $OPT" >> config.mk

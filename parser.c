@@ -58,10 +58,15 @@ chain *parser(token *tokens){
 	for(;current->type;current = current->next){
 		switch(current->type){
 		case '|':
+#ifdef NO_PIPE
+			ERROR("tsh was compiled with NO_PIPE");
+#else
 			if(current->next->type != T_STR){
 				ERROR("syntax error near |");
 			}
 			new_cmd(&last_cmd);
+			break;
+#endif
 		case '>':
 			if(current->next->type != T_STR){
 				ERROR("syntax error near >");

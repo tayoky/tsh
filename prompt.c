@@ -194,6 +194,7 @@ static void erase(char *line,int *cursor,int *len){
 #endif
 
 char *prompt(){
+#ifndef NO_TERMIOS
 	//init history if needed
 	if(!history){
 		history = malloc(1);
@@ -204,6 +205,7 @@ char *prompt(){
 	history_len++;
 	history = realloc(history,history_len * sizeof(char *));
 	history[history_index] = strdup("");
+#endif
 
 	char *line = malloc(256);
 #ifdef NO_TERMIOS
@@ -267,7 +269,6 @@ char *prompt(){
 	line[len] = '\0';
 	restore_term();
 	
-#endif
 	//save to last history entry
 	history_index = history_len - 1 ;
 	free(history[history_index]);
@@ -279,5 +280,7 @@ char *prompt(){
 		history_len--;
 		history = realloc(history,history_len * sizeof(char *));
 	}
+#endif
+
 	return line;
 }
