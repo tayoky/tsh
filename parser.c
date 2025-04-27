@@ -38,6 +38,10 @@ static char **new_arg(cmd **last){
 	return arg;
 }
 
+static redir *new_redir(cmd *last_cmd,redir *last_redir){
+	return NULL;
+}
+
 chain *parser(token *tokens){
 	//create a sub at the start
 	//to make the everyrhing else simpler

@@ -10,10 +10,10 @@ features of the `rewrite` branch :
 - pipes
 - line editing
 - history
+- environ management (export and variable with $)
 
 # lack of features
 features availible on the `main` branch but not on the rewrite :
-- environement variable management
 - output redirection
 - if statement
 

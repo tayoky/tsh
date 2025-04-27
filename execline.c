@@ -82,7 +82,13 @@ static void execute(chain *ch){
 
 int exec_line(char *line){
 	token *tokens = lexer(line);
+	if(!tokens){
+		goto ret;
+	}
 	tokens = simplifier(tokens);
+	if(!tokens){
+		goto ret;
+	}
 	token *cur = tokens;
 	for(;cur->type;cur=cur->next){
 		switch(cur->type){
@@ -98,6 +104,9 @@ int exec_line(char *line){
 	}
 
 	chain *chains = parser(tokens);
+	if(!chains){
+		goto cleanup;
+	}
 	chain *cur_chain = chains;
 	for(;cur_chain;cur_chain = cur_chain->next){
 		cmd *ccur = cur_chain->commands;
@@ -113,5 +122,10 @@ int exec_line(char *line){
 	for(;cur_chain;cur_chain = cur_chain->next){
 		execute(cur_chain);
 	}
+	
+	//TODO : free chain
+	cleanup:
+	//TODO: free tokens
+	ret:
 	return 0;
 }
