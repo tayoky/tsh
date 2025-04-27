@@ -11,11 +11,11 @@ features of the `rewrite` branch :
 - line editing
 - history
 - environ management (export and variable with $)
+- if statement (no `else` supported)
 
 # lack of features
 features availible on the `main` branch but not on the rewrite :
 - output redirection
-- if statement
 
 # build
 to build just

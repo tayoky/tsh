@@ -11,8 +11,15 @@ static int start(cmd *command,int out,int in,int del){
 	//check for built in first
 	for(int i=0;i < sizeof(builtin_cmd) / sizeof(builtin); i++){
 		if(!strcmp(command->argv[0],builtin_cmd[i].name)){
+			if(lock && !builtin_cmd[i].lock_bypass){
+				return 0;
+			}
 			return builtin_cmd[i].func(command->argc,command->argv);
 		}
+	}
+
+	if(lock){
+		return 0;
 	}
 
 	pid_t child = fork();
@@ -90,6 +97,7 @@ int exec_line(char *line){
 		goto ret;
 	}
 	token *cur = tokens;
+#ifdef DEBUG
 	for(;cur->type;cur=cur->next){
 		switch(cur->type){
 			case T_NULL:
@@ -102,12 +110,15 @@ int exec_line(char *line){
 				break;
 		}
 	}
+#endif
 
 	chain *chains = parser(tokens);
 	if(!chains){
 		goto cleanup;
 	}
 	chain *cur_chain = chains;
+
+#ifdef DEBUG
 	for(;cur_chain;cur_chain = cur_chain->next){
 		cmd *ccur = cur_chain->commands;
 		printf("chain:\n");
@@ -118,6 +129,8 @@ int exec_line(char *line){
 			}
 		}
 	}
+#endif
+
 	cur_chain = chains;
 	for(;cur_chain;cur_chain = cur_chain->next){
 		execute(cur_chain);
@@ -125,7 +138,7 @@ int exec_line(char *line){
 	
 	//TODO : free chain
 	cleanup:
-	//TODO: free tokens
+	//TODO: free tokens	
 	ret:
 	return 0;
 }

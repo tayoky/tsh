@@ -29,6 +29,7 @@ typedef struct chain {
 typedef struct builtin {
 	int (*func)(int,char **);
 	char *name;
+	int lock_bypass;
 } builtin;
 
 #define T_NULL 0
@@ -44,7 +45,7 @@ typedef struct builtin {
 
 extern int lock;
 
-extern builtin builtin_cmd[3];
+extern builtin builtin_cmd[6];
 
 char *prompt();
 
