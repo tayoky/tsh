@@ -5,14 +5,10 @@
 #include <string.h>
 #include "tsh.h"
 
-int shell_mode();
-int script_mode(const char *path);
-
 int main(int argc,char **argv){
 	init(argc,argv);
 	if(argc < 2){
-		//shell mode
-		shell_mode();
+		return shell_mode();
 	} else {
 		if(!strcmp(argv[1],"--version")){
 			return exec_line("version");
@@ -25,7 +21,7 @@ int main(int argc,char **argv){
 			}
 			return exec_line(strdup(argv[2]));
 		}
-		script_mode(argv[1]);
+		return script_mode(argv[1]);
 	}
 }
 
@@ -45,10 +41,10 @@ int script_mode(const char *path){
 	}
 
 	fclose(file);
-	exit(0);
+	return 0;
 }
 
-int shell_mode(){
+int shell_mode(void){
 	for(;;){
 		//show the prompt
 		char cwd[256];
@@ -76,4 +72,6 @@ int shell_mode(){
 
 		free(line);
 	}
+
+	return 0;
 }

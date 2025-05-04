@@ -11,6 +11,7 @@ typedef struct redir {
 	int fd;
 	char *path;
 	int flags;
+	struct redir *next;
 } redir;
 
 typedef struct cmd {
@@ -44,6 +45,9 @@ typedef struct builtin {
 #define REDIR_OUT 0x02
 
 extern int lock;
+
+int shell_mode(void);
+int script_mode(const char *path);
 
 extern builtin builtin_cmd[7];
 

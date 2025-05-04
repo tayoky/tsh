@@ -38,7 +38,9 @@ static char **new_arg(cmd **last){
 	return arg;
 }
 
-static redir *new_redir(cmd *last_cmd,redir *last_redir){
+static redir *new_redir(chain *last_chain,redir *last_redir){
+	redir *new = malloc(sizeof(redir));
+	new->next = last_chain->redirections;
 	return NULL;
 }
 
