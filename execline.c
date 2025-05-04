@@ -3,11 +3,12 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include "tsh.h"
 
 int lock = 0;
 
-static int start(cmd *command,int out,int in,int del){
+static int start(cmd *command,int out,int in,int del,redir *redirections){
 	//check for built in first
 	for(int i=0;i < sizeof(builtin_cmd) / sizeof(builtin); i++){
 		if(!strcmp(command->argv[0],builtin_cmd[i].name)){
@@ -37,6 +38,23 @@ static int start(cmd *command,int out,int in,int del){
 		if(in != STDIN_FILENO){
 			close(in);
 		}
+
+		//redirection handling
+		while(redirections){
+			int flags = 0;
+			if(redirections->flags & REDIR_OUT){
+				flags = O_WRONLY | O_CREAT | O_TRUNC;
+			} else if(redirections->flags){
+				flags = O_RDONLY;
+			}
+			int fd = open(redirections->path,flags,S_IWUSR | S_IRUSR);
+			if(fd < 0){
+				perror(redirections->path);
+				return 1;
+			}
+			dup2(fd,redirections->fd);
+			redirections = redirections->next;
+		}
 		execvp(command->argv[0],command->argv);
 		perror(command->argv[0]);
 		exit(1);
@@ -62,11 +80,11 @@ static void execute(chain *ch){
 		if(cur->next){
 			pipe(pipefd);
 			out = pipefd[1];
-			start(cur,out,in,pipefd[0]);
+			start(cur,out,in,pipefd[0],NULL);
 		} else
 #endif
 		{
-			start(cur,out,in,0);
+			start(cur,out,in,0,ch->redirections);
 		}
 
 #ifndef NO_PIPE
@@ -146,7 +164,7 @@ int exec_line(char *line){
 		execute(cur_chain);
 	}
 	
-	//TODO : free chain
+	//TODO : free chain cmd and redir
 	cleanup:
 	cur = tokens;
 	while(cur){

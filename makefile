@@ -7,13 +7,17 @@ CFLAGS += -DHOST=\"${HOST}\"
 
 all : tsh
 tsh : ${OBJ}
-	${CC} ${OBJ} -o tsh
+	@echo "[linking into $@]"
+	@${CC} ${OBJ} -o $@
 %.o : %.c
-	${CC} ${CFLAGS} -o $@ -c $^
+	@echo "[compiling $^]"
+	@${CC} ${CFLAGS} -o $@ -c $^
 clean :
 	rm ${OBJ}
 install : all
-	cp tsh ${PREFIX}/bin
+	@echo "[installing into ${PREFIX}/bin/tsh]"
+	@mkdir -p ${PREFIX}/bin
+	@cp tsh ${PREFIX}/bin
 test : tsh
 	./test.sh
 config.mk :

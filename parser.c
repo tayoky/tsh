@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include "tsh.h"
 
 #define ERROR(...) fprintf(stderr,"tsh : ");fprintf(stderr,__VA_ARGS__);fprintf(stderr,"\n");goto error
@@ -38,10 +39,12 @@ static char **new_arg(cmd **last){
 	return arg;
 }
 
-static redir *new_redir(chain *last_chain,redir *last_redir){
+static redir *new_redir(chain *last_chain){
 	redir *new = malloc(sizeof(redir));
+	memset(new,0,sizeof(redir));
 	new->next = last_chain->redirections;
-	return NULL;
+	last_chain->redirections = new;
+	return new;
 }
 
 chain *parser(token *tokens){
@@ -73,7 +76,16 @@ chain *parser(token *tokens){
 			if(current->next->type != T_STR){
 				ERROR("syntax error near >");
 			}
+#ifdef NO_REDIR
+			ERROR("tsh was compiled with NO_REDIR");
+#else
+			redir *out_redir = new_redir(last);
+			out_redir->flags = REDIR_OUT;
+			out_redir->fd = STDOUT_FILENO;
+			out_redir->path = current->next->value;
+			current = current->next;
 			break;
+#endif
 		case '&':
 			if(is_first ||  (prev->type != T_STR)){
 				ERROR("syntax error near &");
@@ -106,8 +118,13 @@ chain *parser(token *tokens){
 	return first;
 
 	error:
-	//TODO:also free cmd and redir
+	//TODO:also free redir
 	while(first){
+		while(first->commands){
+			cmd *prev = first->commands;
+			first->commands = prev->next;
+			free(prev);
+		}
 		chain *prev = first;
 		first = first->next;
 		free(prev);

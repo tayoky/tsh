@@ -12,10 +12,11 @@ features of the `rewrite` branch :
 - history
 - environ management (export and variable with $)
 - if statement (no `else` supported)
+- output redirection
 
 # lack of features
 features availible on the `main` branch but not on the rewrite :
-- output redirection
+- append mode for output redirection
 
 # build
 to build just
