@@ -29,7 +29,7 @@ token *lexer(char *line){
 			//if in string jist use default case
 			if(in_string)goto default_case;
 
-			create_char_token:
+			create_char_token: ;
 			token *new_tok = malloc(sizeof(token));
 			new_tok->type = *line;
 			last->next = new_tok;
@@ -85,7 +85,7 @@ token *lexer(char *line){
 		}
 	}
 
-	end_lexer:
+	end_lexer: ;
 
 	//add a NULL token a the end
 	token *null_tok = malloc(sizeof(token));
