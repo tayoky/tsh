@@ -1,103 +1,87 @@
+#include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <string.h>
 #include "tsh.h"
 
+struct op {
+	char *str;
+	size_t len;
+	int type;
+};
 
-token *lexer(char *line){
-	token *first  = malloc(sizeof(token));
-	token *last = first;
-	last->type = T_NULL;
-	
-	char in_string = 0;
-	char prev_backslash = 0;
+#define OP(t,n) {.type = t,.str = n,.len = sizeof(n)-1}
 
-	for(;*line;line++){
-		//a backslash forces a default case
-		if(prev_backslash){
-			prev_backslash = 0;
-			goto default_case;
-		}
-		switch(*line){
-		case '$':
-		case '{':
-		case '}':
-		case '(':
-		case ')':
-		case '<':
-		case '>':
-		case '|':
-			//if in string jist use default case
-			if(in_string)goto default_case;
+//must be from bigger to smaller
+struct op operators[]={
+	OP(T_AND,"&&"),
+	OP(T_OR,"||"),
+	OP(T_BG,"&"),
+	OP(T_PIPE,"|"),
+	OP(T_OPEN_BRACK,"{"),
+	OP(T_CLOSE_BRACK,"}"),
+	OP(T_OPEN_PAREN,"("),
+	OP(T_CLOSE_PAREN,")"),
+	OP(T_SEMI_COLON,";"),
+};
 
-			create_char_token: ;
-			token *new_tok = malloc(sizeof(token));
-			new_tok->type = *line;
-			last->next = new_tok;
-			last = new_tok;
-			break;
-		case ' ':
-			//if in string just use default case
-			if(in_string)goto default_case;
-			//we add a new space token
-			//but only if the last one isen't
-			//aready a space
-			if(last->type == T_SPACE)break;
-			token *space_tok = malloc(sizeof(token));
-			space_tok->type = T_SPACE;
-			last->next = space_tok;
-			last = space_tok;
-			break;
-		case '&':
-			if(in_string)goto default_case;
-			if(line[1] == '&'){
-				//TODO create a && token
-				break;
-			}
-			goto create_char_token;
-			break;
-		case '#':
-			if(in_string)goto default_case;
-			//we start a comment
-			//stop tokenize now
-			goto end_lexer;
-		case '\\':
-			prev_backslash= 1;
-			break;
-		case '"':
-			//toggle between inside and outside string
-			in_string = 1 - in_string;
-			break;
-		default:
-			default_case:
-			if(last->type != T_STR){
-				token *str_tok = malloc(sizeof(token));
-				str_tok->type = T_STR;
-				str_tok->value = strdup("");
-				last->next = str_tok;
-				last = str_tok;
-			}
 
-			//append to the last str token
-			last->value = realloc(last->value,strlen(last->value) + 2);
-			last->value[strlen(last->value)+1] = '\0';
-			last->value[strlen(last->value)] = *line;
-			break;
+int get_operator(char *str){
+	for(int i=0; i<arraylen(operators); i++){
+		if(!memcmp(str,operators[i].str,operators[i].len)){
+			return i;
 		}
 	}
 
-	end_lexer: ;
+	return -1;
+}
 
-	//add a NULL token a the end
-	token *null_tok = malloc(sizeof(token));
-	null_tok->type = T_NULL;
-	null_tok->next = NULL;
-	last->next = null_tok;
-	last = null_tok;
+char *skip_blank(char *str){
+	while(isblank(*str)){
+		str++;
+	}
+	return str;
+}
 
-	//remove the first token it's not needed anymore
-	token *old_tok = first;
-	first = old_tok->next;
-	free(old_tok);
+token *new_token(token **first,token **last){
+	token *new = malloc(sizeof(token));
+	memset(new,0,sizeof(token));
+	if(!*first) *first = new;
+	if(*last) (*last)->next = new;
+	*last = new;
+	return new;
+}
 
+char *end_of_str(char *str){
+	for(;;){
+		if(!*str)break;
+		if(isblank(*str))break;
+		if(get_operator(str) >= 0)break;
+		str++;
+	}
+	return str;
+}
+
+token *lexer(char *line){
+	token *last = NULL;
+	token *first = NULL;
+	line = skip_blank(line);
+	while(*line){
+		token *new = new_token(&first,&last);
+		int op = get_operator(line);
+		if(op < 0){
+			char *end = end_of_str(line);
+			new->value = strndup(line,end - line);
+			line = end;
+			new->type = T_STR;
+		} else {
+			line += operators[op].len;
+			new->type = operators[op].type;
+		}
+		line = skip_blank(line);
+	}
+
+	token *end = new_token(&first,&last);
+	end->type = T_END;
 	return first;
 }

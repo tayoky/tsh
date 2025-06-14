@@ -7,25 +7,6 @@ typedef struct token {
 	struct token *next;
 } token;
 
-typedef struct redir {
-	int fd;
-	char *path;
-	int flags;
-	struct redir *next;
-} redir;
-
-typedef struct cmd {
-	int argc;
-	char **argv;
-	struct cmd *next;
-	unsigned int flags;
-} cmd;
-
-typedef struct chain {
-	struct cmd *commands;
-	struct chain *next;
-	struct redir *redirections;
-} chain;
 
 typedef struct builtin {
 	int (*func)(int,char **);
@@ -33,16 +14,21 @@ typedef struct builtin {
 	int lock_bypass;
 } builtin;
 
-#define T_NULL 0
-#define T_STR  1
-#define T_SPACE ' '
+#define T_NULL         0
+#define T_STR          1
+#define T_AND          2
+#define T_OR           3
+#define T_END          4
+#define T_PIPE        '|'
+#define T_BG          '&'
+#define T_SPACE       ' '
+#define T_OPEN_BRACK  '{'
+#define T_CLOSE_BRACK '}'
+#define T_OPEN_PAREN  '('
+#define T_CLOSE_PAREN ')'
+#define T_SEMI_COLON  ';'
 
-#define CMD_BG   0x01
-#define CMD_PIPE 0x02
-#define CMD_NULL 0x04
-
-#define REDIR_IN  0x01
-#define REDIR_OUT 0x02
+#define arraylen(ar) (sizeof(ar)/sizeof(*ar))
 
 extern int lock;
 
@@ -59,8 +45,6 @@ int exec_line(char *line);
 
 token *lexer(char *line);
 
-token *simplifier(token *tokens);
 
-chain *parser(token *tokens);
 
 #endif
