@@ -14,6 +14,12 @@ typedef struct builtin {
 	int lock_bypass;
 } builtin;
 
+typedef struct AST_node {
+	int type;
+	struct AST_node *left,*right;
+	char *value;
+} AST_node;
+
 #define T_NULL         0
 #define T_STR          1
 #define T_AND          2
@@ -28,9 +34,18 @@ typedef struct builtin {
 #define T_CLOSE_PAREN ')'
 #define T_SEMI_COLON  ';'
 
-#define arraylen(ar) (sizeof(ar)/sizeof(*ar))
+#define AST_NULL    0
+#define AST_EXPR    1
+#define AST_COMMAND 2
+#define AST_ARG     3
+#define AST_AND     4
+#define AST_OR      5
+#define AST_BG      6
 
+#define arraylen(ar) (sizeof(ar)/sizeof(*ar))
 extern int lock;
+
+void error(const char *fmt,...);
 
 int shell_mode(void);
 int script_mode(const char *path);
@@ -44,6 +59,9 @@ char *prompt();
 int exec_line(char *line);
 
 token *lexer(char *line);
+const char *token_name(token *);
+
+AST_node *parser(token *);
 
 
 

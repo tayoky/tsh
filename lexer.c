@@ -26,6 +26,24 @@ struct op operators[]={
 };
 
 
+const char *token_name(token *t){
+	for(int i=0; i<arraylen(operators); i++){
+		if(operators[i].type == t->type){
+			return operators[i].str;
+		}
+	}
+
+	switch(t->type){
+	case T_END:
+		return "<end>";
+	case T_STR:
+		return "<string>";
+	default:
+		return "<unknow>";
+	}
+}
+
+
 int get_operator(char *str){
 	for(int i=0; i<arraylen(operators); i++){
 		if(!memcmp(str,operators[i].str,operators[i].len)){
