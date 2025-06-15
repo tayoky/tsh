@@ -5,10 +5,10 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include "tsh.h"
+#include "malloc-check.h"
 
 int lock = 0;
 
-void malloc_check();
 
 void print_node(AST_node *node,int depth){
 	printf("%*s",depth,"");
@@ -35,7 +35,7 @@ void print_node(AST_node *node,int depth){
 }
 
 int exec_line(char *line){
-	malloc_check();
+	start_malloc_check();
 	token *tokens = lexer(line);
 	if(!tokens){
 		goto ret;

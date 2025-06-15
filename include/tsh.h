@@ -66,12 +66,4 @@ const char *token_name(token *);
 AST_node *parser(token *);
 AST_node *ast_cleanup(AST_node *);
 
-//for memory leak detector
-#define malloc  ___malloc
-#define free    ___free
-#define realloc ___realloc
-void *___malloc(size_t);
-void ___free(void*);
-void *___realloc(void*,size_t);
-
 #endif

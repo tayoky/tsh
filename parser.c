@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "tsh.h"
+#include "malloc-check.h"
 
 AST_node *new_node(void){
 	AST_node *new = malloc(sizeof(AST_node));

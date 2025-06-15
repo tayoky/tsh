@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 //memory leak detector
 
@@ -25,6 +26,19 @@ void *___realloc(void *ptr,size_t amount){
 	return realloc(ptr,amount);
 }
 
+char *___strndup(const char *src,size_t size){
+	allocated_seg++;
+	return strndup(src,size);
+}
+
+char *___strdup(const char *src){
+	allocated_seg++;
+	return strdup(src);
+}
+void start_malloc_check(void){
+	allocated_seg = 0;
+	freed_seg = 0;
+}
 void malloc_check(void){
 	printf("memory leak check :\n");
 	printf("%zu seg allocated\n",allocated_seg);

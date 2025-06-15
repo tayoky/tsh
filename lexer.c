@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <string.h>
 #include "tsh.h"
+#include "malloc-check.h"
 
 struct op {
 	char *str;
