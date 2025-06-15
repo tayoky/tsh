@@ -9,9 +9,12 @@ AST_node *new_node(void){
 }
 
 
-AST_node *cleanup(AST_node *node){
-	if(node->left)cleanup(node->left);
-	if(node->right)cleanup(node->right);
+AST_node *ast_cleanup(AST_node *node){
+	if(node->left)ast_cleanup(node->left);
+	if(node->right)ast_cleanup(node->right);
+	if(node->type == AST_ARG){
+		free(node->value);
+	}
 	free(node);
 	return NULL;
 }
@@ -47,7 +50,7 @@ AST_node *parser(token *current){
 		case T_AND:;
 			if(!last_arg){
 				error("syntax error near token %s",token_name(current));
-				return cleanup(expr);
+				return ast_cleanup(expr);
 			}
 			AST_node *op = new_node();
 			switch(current->type){

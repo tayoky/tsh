@@ -54,8 +54,7 @@ int shell_mode(void){
 
 		//default home
 		if(!home){
-			home = malloc(2);
-			strcpy(home,"/");
+			home = "/";
 		}
 
 		//if in home directory show ~

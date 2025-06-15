@@ -8,6 +8,8 @@
 
 int lock = 0;
 
+void malloc_check();
+
 void print_node(AST_node *node,int depth){
 	printf("%*s",depth,"");
 	switch(node->type){
@@ -33,6 +35,7 @@ void print_node(AST_node *node,int depth){
 }
 
 int exec_line(char *line){
+	malloc_check();
 	token *tokens = lexer(line);
 	if(!tokens){
 		goto ret;
@@ -54,6 +57,8 @@ int exec_line(char *line){
 	}
 	print_node(root,0);
 
+ast_cleanup:
+	ast_cleanup(root);
 tokens_cleanup:
 	while(tokens){
 		if(tokens->type == T_STR){
@@ -64,5 +69,6 @@ tokens_cleanup:
 		tokens = next;
 	}
 ret:
+	malloc_check();
 	return 0;
 }

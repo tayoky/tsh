@@ -10,7 +10,6 @@ void init(int argc,char **argv){
 	char *tsh = malloc(strlen(argv[0]) + 5);
 	sprintf(tsh,"TSH=%s",argv[0]);
 	putenv(tsh);
-	free(tsh);
 	
 	//setup argument
 	//for use in scripts
@@ -20,7 +19,6 @@ void init(int argc,char **argv){
 		char *arg = malloc(strlen(argv[i]) + 64);
 		sprintf(arg,"%d=%s",n,argv[i]);
 		putenv(arg);
-		free(arg);
 		n++;
 	}
 }

@@ -6,6 +6,8 @@
 #include <unistd.h>
 #endif
 
+#include "tsh.h"
+
 #define ESC "\033"
 
 #ifndef NO_TERMIOS
