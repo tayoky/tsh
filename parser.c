@@ -20,16 +20,16 @@ AST_node *ast_cleanup(AST_node *node){
 	return NULL;
 }
 
+#define syntax_error() {error("syntax error near token %s",token_name(current));\
+				return ast_cleanup(first_expr);}
+
 AST_node *parser(token *current){
-	AST_node *expr = new_node();
-	expr->type = AST_EXPR;
+	AST_node *first_expr = new_node();
+	first_expr->type = AST_EXPR;
+	AST_node *last_expr = first_expr;
 
-	AST_node *last_cmd = new_node();
-	last_cmd->type = AST_COMMAND;
-
-	expr->right = last_cmd;
-	AST_node *current_top = expr;
-
+	AST_node *current_top = last_expr;
+	AST_node *last_cmd = NULL;
 	AST_node *last_arg = NULL;
 
 	while(current){
@@ -40,19 +40,19 @@ AST_node *parser(token *current){
 			AST_node *arg = new_node();
 			arg->type = AST_ARG;
 			arg->value = strdup(current->value);
-			if(last_arg){
+			if(last_cmd){
 				last_arg->right = arg;
 			} else {
+				last_cmd = new_node();
+				last_cmd->type = AST_COMMAND;
+				current_top->right = last_cmd;
 				last_cmd->left = arg;
 			}
 			last_arg = arg;
 			break;
 		case T_OR:
-		case T_AND:;
-			if(!last_arg){
-				error("syntax error near token %s",token_name(current));
-				return ast_cleanup(expr);
-			}
+		case T_AND:
+			if(!last_cmd)syntax_error();
 			AST_node *op = new_node();
 			switch(current->type){
 			case T_OR:
@@ -65,17 +65,23 @@ AST_node *parser(token *current){
 
 			op->left = current_top->right;
 
-			//create a new cmd for the right
-			last_cmd = new_node();
-			last_cmd->type = AST_COMMAND;
-			op->right = last_cmd;
-
 			//set the op at the right of the top node
 			current_top->right = op;
 			
 			//setup new context
 			current_top = op;
 			last_arg = NULL;
+			last_cmd = NULL;
+			break;
+		case T_SEMI_COLON:
+			if(!last_cmd)syntax_error();
+			AST_node *new_expr = new_node();
+			new_expr->type = AST_EXPR;
+			last_expr->left = new_expr;
+			last_expr = new_expr;
+			current_top = new_expr;
+			last_arg = NULL;
+			last_cmd = NULL;
 			break;
 		default:
 			break;
@@ -83,5 +89,5 @@ AST_node *parser(token *current){
 		current = current->next;
 	}
 
-	return expr;
+	return first_expr;
 }
