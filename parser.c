@@ -53,6 +53,7 @@ AST_node *parser(token *current){
 		case T_OR:
 		case T_AND:
 			if(!last_cmd)syntax_error();
+			if(current->next->type != T_STR)syntax_error();
 			AST_node *op = new_node();
 			switch(current->type){
 			case T_OR:
