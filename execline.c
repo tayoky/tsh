@@ -64,7 +64,7 @@ int execute_node(AST_node *node){
 	return 0;
 }
 
-
+#ifdef DEBUG
 void print_node(AST_node *node,int depth){
 	printf("%*s",depth,"");
 	switch(node->type){
@@ -88,6 +88,7 @@ void print_node(AST_node *node,int depth){
 	if(node->left)print_node(node->left,depth+1);
 	if(node->right)print_node(node->right,depth+1);
 }
+#endif
 
 int exec_line(char *line){
 	start_malloc_check();
@@ -95,6 +96,7 @@ int exec_line(char *line){
 	if(!tokens){
 		goto ret;
 	}
+#ifdef DEBUG
 	{
 	token *cur = tokens;
 	while(cur){
@@ -105,12 +107,15 @@ int exec_line(char *line){
 		cur = cur->next;
 	}
 	}
+#endif
 
 	AST_node *root = parser(tokens);
 	if(!root){
 		goto tokens_cleanup;
 	}
+#ifdef DEBUG
 	print_node(root,0);
+#endif
 
 	execute_node(root);
 
@@ -126,6 +131,8 @@ tokens_cleanup:
 		tokens = next;
 	}
 ret:
+#ifdef DEBUG
 	malloc_check();
+#endif
 	return 0;
 }
