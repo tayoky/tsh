@@ -24,6 +24,8 @@ struct op operators[]={
 	OP(T_OPEN_PAREN,"("),
 	OP(T_CLOSE_PAREN,")"),
 	OP(T_SEMI_COLON,";"),
+	OP(T_INFERIOR,"<"),
+	OP(T_SUPERIOR,">"),
 };
 
 

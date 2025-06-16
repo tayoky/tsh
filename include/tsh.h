@@ -35,6 +35,8 @@ typedef struct AST_node {
 #define T_OPEN_PAREN  '('
 #define T_CLOSE_PAREN ')'
 #define T_SEMI_COLON  ';'
+#define T_INFERIOR    '<'
+#define T_SUPERIOR    '>'
 
 #define AST_NULL    0
 #define AST_EXPR    1
