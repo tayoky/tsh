@@ -67,6 +67,7 @@ int interpret(const char *text);
 
 token *lexer(const char *text);
 const char *token_name(token *);
+const char *token2str(token *);
 
 AST_node *parser(token *);
 AST_node *ast_cleanup(AST_node *);

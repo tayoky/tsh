@@ -23,6 +23,32 @@ AST_node *ast_cleanup(AST_node *node){
 #define syntax_error() {error("syntax error near token %s",token_name(current));\
 				return ast_cleanup(first_expr);}
 
+
+//return the last arg, or create a new one if needed
+AST_node *new_arg(token *prev,AST_node **last_arg,AST_node **last_cmd,AST_node **current_top){
+	if(prev && prev->type != T_SPACE && *last_arg){
+		return *last_arg;
+	}
+
+	AST_node *arg = new_node();
+	arg->type = AST_ARG;
+
+	if(*last_cmd){
+		(*last_arg)->right = arg;
+	} else {
+		*last_cmd = new_node();
+		(*last_cmd)->type = AST_COMMAND;
+		(*current_top)->right = *last_cmd;
+		(*last_cmd)->left = arg;
+	}
+
+	*last_arg = arg;
+
+	return arg;
+}
+
+#define context prev,&last_arg,&last_cmd,&current_top
+
 AST_node *parser(token *current){
 	AST_node *first_expr = new_node();
 	first_expr->type = AST_EXPR;
@@ -32,23 +58,33 @@ AST_node *parser(token *current){
 	AST_node *last_cmd = NULL;
 	AST_node *last_arg = NULL;
 
+	token *prev = NULL;
+
 	while(current){
 		switch(current->type){
 		case T_EOF:
 			break;
 		case T_STR:;
-			AST_node *arg = new_node();
-			arg->type = AST_ARG;
-			arg->value = strdup(current->value);
-			if(last_cmd){
-				last_arg->right = arg;
-			} else {
-				last_cmd = new_node();
-				last_cmd->type = AST_COMMAND;
-				current_top->right = last_cmd;
-				last_cmd->left = arg;
+			AST_node *arg = new_arg(context);
+			arg->value = strdup(current->value);	
+			break;
+		case T_QUOTE:;
+			//enter a litteral string
+			AST_node *string = new_arg(context);
+			string->value = strdup("");
+			current = current->next;
+			while(current->type != T_QUOTE){
+				if(current->type == T_STR){
+					string->value = realloc(string->value,strlen(string->value) + strlen(current->value) + 1);
+					strcat(string->value,current->value);
+				} else {
+					const char *tok = token2str(current);
+					string->value = realloc(string->value,strlen(string->value) + strlen(tok) + 1);
+					strcat(string->value,tok);
+				}
+				if(!current->next)syntax_error();
+				current = current->next;
 			}
-			last_arg = arg;
 			break;
 		case T_OR:
 		case T_AND:

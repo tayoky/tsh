@@ -33,7 +33,16 @@ struct op operators[]={
 	OP(T_DQUOTE,"\""),
 };
 
-
+const char *token2str(token *t){
+	switch(t->type){
+	case T_SPACE:
+		return " ";
+	case T_NEWLINE:
+		return "\n";
+	default:
+		return token_name(t);
+	}
+}
 const char *token_name(token *t){
 	switch(t->type){
 	case T_EOF:
