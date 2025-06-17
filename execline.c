@@ -35,6 +35,7 @@ int launch(char *const*args){
 int execute_node(AST_node *node){
 	switch(node->type){
 	case AST_EXPR:;
+		if(!node->right)return 0;
 		int expr_status = execute_node(node->right);
 		if(node->left)return execute_node(node->left);
 		return expr_status;
