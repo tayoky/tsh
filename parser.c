@@ -71,7 +71,7 @@ AST_node *parser(token *current){
 		case T_QUOTE:;
 			//enter a litteral string
 			AST_node *string = new_arg(context);
-			string->value = strdup("");
+			if(!string->value)string->value = strdup("");
 			current = current->next;
 			while(current->type != T_QUOTE){
 				if(current->type == T_STR){
@@ -133,6 +133,7 @@ AST_node *parser(token *current){
 		default:
 			break;
 		}
+		prev = current;
 		current = current->next;
 	}
 
