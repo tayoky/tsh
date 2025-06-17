@@ -26,7 +26,7 @@ typedef struct AST_node {
 #define T_STR          1
 #define T_AND          2
 #define T_OR           3
-#define T_END          4
+#define T_EOF          4
 #define T_PIPE        '|'
 #define T_BG          '&'
 #define T_SPACE       ' '
@@ -37,6 +37,7 @@ typedef struct AST_node {
 #define T_SEMI_COLON  ';'
 #define T_INFERIOR    '<'
 #define T_SUPERIOR    '>'
+#define T_NEWLINE     '\n'
 
 #define AST_NULL    0
 #define AST_EXPR    1
@@ -60,9 +61,9 @@ void init(int argc,char **argv);
 
 char *prompt();
 
-int exec_line(char *line);
+int interpret(const char *text);
 
-token *lexer(char *line);
+token *lexer(const char *text);
 const char *token_name(token *);
 
 AST_node *parser(token *);

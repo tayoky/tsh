@@ -34,7 +34,7 @@ AST_node *parser(token *current){
 
 	while(current){
 		switch(current->type){
-		case T_END:
+		case T_EOF:
 			break;
 		case T_STR:;
 			AST_node *arg = new_node();
@@ -83,6 +83,13 @@ AST_node *parser(token *current){
 			current_top = new_expr;
 			last_arg = NULL;
 			last_cmd = NULL;
+			break;
+		case T_INFERIOR:
+		case T_SUPERIOR:
+			if(current->next->type != T_STR) syntax_error();
+			//skip the string
+			current = current->next;
+			//TODO : create file ??? change flags on AST node ???
 			break;
 		default:
 			break;

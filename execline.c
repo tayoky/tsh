@@ -93,9 +93,9 @@ void print_node(AST_node *node,int depth){
 }
 #endif
 
-int exec_line(char *line){
+int interpret(const char *text){
 	start_malloc_check();
-	token *tokens = lexer(line);
+	token *tokens = lexer(text);
 	if(!tokens){
 		goto ret;
 	}

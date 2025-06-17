@@ -11,7 +11,7 @@ int main(int argc,char **argv){
 		return shell_mode();
 	} else {
 		if(!strcmp(argv[1],"--version")){
-			return exec_line("version");
+			return interpret("version");
 		}
 		if(!strcmp(argv[1],"-c")){
 			//execute one single command
@@ -19,7 +19,7 @@ int main(int argc,char **argv){
 				printf("tsh : -c option require one argument\n");
 				return -1;
 			}
-			return exec_line(strdup(argv[2]));
+			return interpret(strdup(argv[2]));
 		}
 		return script_mode(argv[1]);
 	}
@@ -31,15 +31,17 @@ int script_mode(const char *path){
 		printf("%s : %s\n",path,strerror(errno));
 		exit(-1);
 	}
+	//find size
+	fseek(file,0,SEEK_END);
+	size_t size = ftell(file);
 
-	char line[256];
-	
-	while(fgets(line,sizeof(line) - 1,file)){
-		//replace \n with \0
-		*strchr(line,'\n') = '\0';
-		exec_line(line);
+	//read the entire file into memory
+	char *content = malloc(size + 1);
+	fseek(file,0,SEEK_SET);
+	if(fread(content,1,size,file) < 0){
+		error("fread : %s",strerror(errno));
 	}
-
+	content[size] = '\0';
 	fclose(file);
 	return 0;
 }
@@ -67,7 +69,7 @@ int shell_mode(void){
 
 
 		//execute the line
-		exec_line(line);
+		interpret(line);
 
 		free(line);
 	}

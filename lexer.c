@@ -15,6 +15,7 @@ struct op {
 
 //must be from bigger to smaller
 struct op operators[]={
+	OP(T_NEWLINE,"\r\n"),
 	OP(T_AND,"&&"),
 	OP(T_OR,"||"),
 	OP(T_BG,"&"),
@@ -26,28 +27,30 @@ struct op operators[]={
 	OP(T_SEMI_COLON,";"),
 	OP(T_INFERIOR,"<"),
 	OP(T_SUPERIOR,">"),
+	OP(T_NEWLINE,"\n"),
 };
 
 
 const char *token_name(token *t){
+	switch(t->type){
+	case T_EOF:
+		return "<eof>";
+	case T_STR:
+		return "<string>";
+	case T_NEWLINE:
+		return "<newline>";
+	}
+
 	for(int i=0; i<arraylen(operators); i++){
 		if(operators[i].type == t->type){
 			return operators[i].str;
 		}
 	}
-
-	switch(t->type){
-	case T_END:
-		return "<end>";
-	case T_STR:
-		return "<string>";
-	default:
-		return "<unknow>";
-	}
+	return "<unknow>";
 }
 
 
-int get_operator(char *str){
+int get_operator(const char *str){
 	for(int i=0; i<arraylen(operators); i++){
 		if(!memcmp(str,operators[i].str,operators[i].len)){
 			return i;
@@ -57,7 +60,7 @@ int get_operator(char *str){
 	return -1;
 }
 
-char *skip_blank(char *str){
+const char *skip_blank(const char *str){
 	while(isblank(*str)){
 		str++;
 	}
@@ -73,7 +76,7 @@ token *new_token(token **first,token **last){
 	return new;
 }
 
-char *end_of_str(char *str){
+const char *end_of_str(const char *str){
 	for(;;){
 		if(!*str)break;
 		if(isblank(*str))break;
@@ -83,7 +86,7 @@ char *end_of_str(char *str){
 	return str;
 }
 
-token *lexer(char *line){
+token *lexer(const char *line){
 	token *last = NULL;
 	token *first = NULL;
 	line = skip_blank(line);
@@ -91,7 +94,7 @@ token *lexer(char *line){
 		token *new = new_token(&first,&last);
 		int op = get_operator(line);
 		if(op < 0){
-			char *end = end_of_str(line);
+			const char *end = end_of_str(line);
 			new->value = strndup(line,end - line);
 			line = end;
 			new->type = T_STR;
@@ -103,6 +106,6 @@ token *lexer(char *line){
 	}
 
 	token *end = new_token(&first,&last);
-	end->type = T_END;
+	end->type = T_EOF;
 	return first;
 }

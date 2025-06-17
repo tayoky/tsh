@@ -6,8 +6,6 @@
 #include <unistd.h>
 #endif
 
-#include "tsh.h"
-
 #define ESC "\033"
 
 #ifndef NO_TERMIOS
@@ -212,9 +210,6 @@ char *prompt(){
 	char *line = malloc(256);
 #ifdef NO_TERMIOS
 	fgets(line,255,stdin);
-	if(strchr(line,'\n')){
-		*strchr(line,'\n') = '\0';
-	}
 #else
 	//for various reason
 	//raw mode might cause sole stdout issue
@@ -227,12 +222,6 @@ char *prompt(){
 	for(;;){
 		char c = 0;
 		if(read(STDIN_FILENO,&c,1) < 0){
-			break;
-		}
-
-		if(c == '\n'){
-			putchar('\n');
-			fflush(stdout);
 			break;
 		}
 
@@ -267,6 +256,11 @@ char *prompt(){
 
 		//now reprint
 		reprint(line,cursor,len);
+
+		if(c == '\n'){
+			fflush(stdout);
+			break;
+		}
 	}
 	line[len] = '\0';
 	restore_term();
