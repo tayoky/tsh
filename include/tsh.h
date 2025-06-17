@@ -6,7 +6,6 @@
 typedef struct token {
 	int type;
 	char *value;
-	struct token *next;
 } token;
 
 
@@ -65,11 +64,12 @@ char *prompt();
 
 int interpret(const char *text);
 
-token *lexer(const char *text);
+token *next_token(const char **p);
+void destroy_token(token *);
 const char *token_name(token *);
 const char *token2str(token *);
 
-AST_node *parser(token *);
+AST_node *parser(const char *text);
 AST_node *ast_cleanup(AST_node *);
 
 #endif

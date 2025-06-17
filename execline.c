@@ -103,26 +103,27 @@ void print_node(AST_node *node,int depth){
 
 int interpret(const char *text){
 	start_malloc_check();
-	token *tokens = lexer(text);
-	if(!tokens){
-		goto ret;
-	}
 #ifdef DEBUG
 	{
-	token *cur = tokens;
+	const char *p = text;
+	token *cur = next_token(&p);
 	while(cur){
 		if(cur->type == T_STR)
 		printf("string %s\n",cur->value);
 		else
 		printf("token %s\n",token_name(cur));
-		cur = cur->next;
+		destroy_token(cur);
+		cur = next_token(&p);
 	}
 	}
 #endif
 
-	AST_node *root = parser(tokens);
+	AST_node *root = parser(text);
 	if(!root){
-		goto tokens_cleanup;
+#ifdef DEBUG
+		malloc_check();
+#endif
+		return 1;
 	}
 #ifdef DEBUG
 	print_node(root,0);
@@ -130,18 +131,7 @@ int interpret(const char *text){
 
 	execute_node(root);
 
-ast_cleanup:
 	ast_cleanup(root);
-tokens_cleanup:
-	while(tokens){
-		if(tokens->type == T_STR){
-			free(tokens->value);
-		}
-		token *next = tokens->next;
-		free(tokens);
-		tokens = next;
-	}
-ret:
 #ifdef DEBUG
 	malloc_check();
 #endif

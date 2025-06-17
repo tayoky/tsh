@@ -64,7 +64,7 @@ const char *token_name(token *t){
 }
 
 
-int get_operator(const char *str){
+static int get_operator(const char *str){
 	for(size_t i=0; i<arraylen(operators); i++){
 		if(!memcmp(str,operators[i].str,operators[i].len)){
 			return i;
@@ -74,16 +74,7 @@ int get_operator(const char *str){
 	return -1;
 }
 
-token *new_token(token **first,token **last){
-	token *new = malloc(sizeof(token));
-	memset(new,0,sizeof(token));
-	if(!*first) *first = new;
-	if(*last) (*last)->next = new;
-	*last = new;
-	return new;
-}
-
-const char *end_of_str(const char *str){
+static const char *end_of_str(const char *str){
 	for(;;){
 		if(!*str)break;
 		if(isblank(*str))break;
@@ -93,24 +84,31 @@ const char *end_of_str(const char *str){
 	return str;
 }
 
-token *lexer(const char *line){
-	token *last = NULL;
-	token *first = NULL;
-	while(*line){
-		token *new = new_token(&first,&last);
-		int op = get_operator(line);
-		if(op < 0){
-			const char *end = end_of_str(line);
-			new->value = strndup(line,end - line);
-			line = end;
-			new->type = T_STR;
-		} else {
-			line += operators[op].len;
-			new->type = operators[op].type;
-		}
+token *next_token(const char **p){
+	if(!*p)return NULL;
+	token *new = malloc(sizeof(token));
+	memset(new,0,sizeof(token));
+	if(!**p){
+		new->type = T_EOF;
+		*p = NULL;
+		return new;
 	}
+	int op = get_operator(*p);
+	if(op < 0){
+		const char *end = end_of_str(*p);
+		new->value = strndup(*p,end - *p);
+		*p = end;
+		new->type = T_STR;
+	} else {
+		*p += operators[op].len;
+		new->type = operators[op].type;
+	}
+	return new;
+}
 
-	token *end = new_token(&first,&last);
-	end->type = T_EOF;
-	return first;
+void destroy_token(token *t){
+	if(t->type == T_STR){
+		free(t->value);
+	}
+	free(t);
 }

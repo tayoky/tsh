@@ -21,7 +21,9 @@ AST_node *ast_cleanup(AST_node *node){
 }
 
 #define syntax_error() {error("syntax error near token %s",token_name(current));\
-				return ast_cleanup(first_expr);}
+	destroy_token(current);\
+	if(prev)destroy_token(current);\
+	return ast_cleanup(first_expr);}
 
 
 //return the last arg, or create a new one if needed
@@ -49,7 +51,7 @@ AST_node *new_arg(token *prev,AST_node **last_arg,AST_node **last_cmd,AST_node *
 
 #define context prev,&last_arg,&last_cmd,&current_top
 
-AST_node *parser(token *current){
+AST_node *parser(const char *text){
 	AST_node *first_expr = new_node();
 	first_expr->type = AST_EXPR;
 	AST_node *last_expr = first_expr;
@@ -60,6 +62,7 @@ AST_node *parser(token *current){
 
 	token *prev = NULL;
 
+	token *current = next_token(&text);
 	while(current){
 		switch(current->type){
 		case T_EOF:
@@ -72,9 +75,12 @@ AST_node *parser(token *current){
 			//enter a litteral string
 			AST_node *string = new_arg(context);
 			if(!string->value)string->value = strdup("");
-			current = current->next;
+			destroy_token(current);
+			current = next_token(&text);
 			while(current->type != T_QUOTE){
-				if(current->type == T_STR){
+				if(current->type == T_EOF){
+					syntax_error();
+				} else if(current->type == T_STR){
 					string->value = realloc(string->value,strlen(string->value) + strlen(current->value) + 1);
 					strcat(string->value,current->value);
 				} else {
@@ -82,14 +88,14 @@ AST_node *parser(token *current){
 					string->value = realloc(string->value,strlen(string->value) + strlen(tok) + 1);
 					strcat(string->value,tok);
 				}
-				if(!current->next)syntax_error();
-				current = current->next;
+				destroy_token(current);
+				current = next_token(&text);
 			}
 			break;
 		case T_OR:
 		case T_AND:
 			if(!last_cmd)syntax_error();
-			if(current->next->type != T_STR)syntax_error();
+
 			AST_node *op = new_node();
 			switch(current->type){
 			case T_OR:
@@ -125,17 +131,20 @@ AST_node *parser(token *current){
 			break;
 		case T_INFERIOR:
 		case T_SUPERIOR:
-			if(current->next->type != T_STR) syntax_error();
+			//if(current->next->type != T_STR) syntax_error();
 			//skip the string
-			current = current->next;
+			current = next_token(&text);
 			//TODO : create file ??? change flags on AST node ???
 			break;
 		default:
 			break;
 		}
+		if(prev)destroy_token(prev);
 		prev = current;
-		current = current->next;
+		current = next_token(&text);
 	}
+
+	if(prev)destroy_token(prev);
 
 	return first_expr;
 }
