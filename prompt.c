@@ -254,13 +254,15 @@ char *prompt(){
 		cursor++;
 		len++;
 
-		//now reprint
-		reprint(line,cursor,len);
-
 		if(c == '\n'){
+			move(len-cursor);
+			putchar('\n');
 			fflush(stdout);
 			break;
 		}
+
+		//now reprint
+		reprint(line,cursor,len);
 	}
 	line[len] = '\0';
 	restore_term();

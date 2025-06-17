@@ -12,6 +12,14 @@ int lock = 0;
 int exit_code;
 
 int launch(char *const*args){
+	//check for build it
+	for(int i=0; i<3; i++){
+		if(!strcmp(args[0],builtin_cmd[i].name)){
+			int argc =0;
+			while(args[argc])argc++;
+			return builtin_cmd[i].func(argc,args);
+		}
+	}
 	pid_t child = fork();
 	if(!child){
 		execvp(args[0],args);
