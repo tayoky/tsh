@@ -29,6 +29,7 @@ struct op operators[]={
 	OP(T_SUPERIOR,">"),
 	OP(T_NEWLINE,"\n"),
 	OP(T_SPACE," "),
+	OP(T_SPACE,"\t"),
 	OP(T_QUOTE,"'"),
 	OP(T_DQUOTE,"\""),
 };
@@ -77,7 +78,6 @@ static int get_operator(const char *str){
 static const char *end_of_str(const char *str){
 	for(;;){
 		if(!*str)break;
-		if(isblank(*str))break;
 		if(get_operator(str) >= 0)break;
 		str++;
 	}
