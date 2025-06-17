@@ -28,6 +28,9 @@ struct op operators[]={
 	OP(T_INFERIOR,"<"),
 	OP(T_SUPERIOR,">"),
 	OP(T_NEWLINE,"\n"),
+	OP(T_SPACE," "),
+	OP(T_QUOTE,"'"),
+	OP(T_DQUOTE,"\""),
 };
 
 
@@ -39,9 +42,11 @@ const char *token_name(token *t){
 		return "<string>";
 	case T_NEWLINE:
 		return "<newline>";
+	case T_SPACE:
+		return "<space>";
 	}
 
-	for(int i=0; i<arraylen(operators); i++){
+	for(size_t i=0; i<arraylen(operators); i++){
 		if(operators[i].type == t->type){
 			return operators[i].str;
 		}
@@ -51,20 +56,13 @@ const char *token_name(token *t){
 
 
 int get_operator(const char *str){
-	for(int i=0; i<arraylen(operators); i++){
+	for(size_t i=0; i<arraylen(operators); i++){
 		if(!memcmp(str,operators[i].str,operators[i].len)){
 			return i;
 		}
 	}
 
 	return -1;
-}
-
-const char *skip_blank(const char *str){
-	while(isblank(*str)){
-		str++;
-	}
-	return str;
 }
 
 token *new_token(token **first,token **last){
@@ -89,7 +87,6 @@ const char *end_of_str(const char *str){
 token *lexer(const char *line){
 	token *last = NULL;
 	token *first = NULL;
-	line = skip_blank(line);
 	while(*line){
 		token *new = new_token(&first,&last);
 		int op = get_operator(line);
@@ -102,7 +99,6 @@ token *lexer(const char *line){
 			line += operators[op].len;
 			new->type = operators[op].type;
 		}
-		line = skip_blank(line);
 	}
 
 	token *end = new_token(&first,&last);
