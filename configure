@@ -4,11 +4,15 @@ rm -f $(dirname $0)/config.mk
 
 HOST=""
 
-PREFIX="/usr/local"
+if [ -z "$PREFIX" ] ; then
+	PREFIX="/usr/local"
+fi
+
+if [ -z "$CFLAGS" ] ; then
+	CFLAGS="-Wall -Wextra"
+fi
 
 OPT=""
-
-CFLAGS=""
 
 for i in "$@"; do
 	case $i in
@@ -16,11 +20,11 @@ for i in "$@"; do
 			SYSROOT="${i#*=}"
 			shift # past argument=value
 			;;
-		--with-CC=*)
+		--cc=*)
 			CC="${i#*=}"
 			shift # past argument=value
 			;;
-		--with-CFLAGS=*)
+		--cflags=*)
 			CFLAGS="${i#*=}"
 			shift
 			;;
