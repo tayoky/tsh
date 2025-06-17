@@ -43,6 +43,7 @@ int script_mode(const char *path){
 	}
 	content[size] = '\0';
 	fclose(file);
+	interpret(content);
 	return 0;
 }
 

@@ -74,6 +74,9 @@ AST_node *parser(token *current){
 			last_arg = NULL;
 			last_cmd = NULL;
 			break;
+		case T_NEWLINE:
+			if(!last_cmd)break;
+			//falltrought
 		case T_SEMI_COLON:
 			if(!last_cmd)syntax_error();
 			AST_node *new_expr = new_node();
