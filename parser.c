@@ -34,6 +34,7 @@ AST_node *new_arg(token *prev,AST_node **last_arg,AST_node **last_cmd,AST_node *
 
 	AST_node *arg = new_node();
 	arg->type = AST_ARG;
+	arg->value = strdup("");
 
 	if(*last_cmd){
 		(*last_arg)->right = arg;
@@ -69,12 +70,12 @@ AST_node *parser(const char *text){
 			break;
 		case T_STR:;
 			AST_node *arg = new_arg(context);
-			arg->value = strdup(current->value);	
+			arg->value = realloc(arg->value,strlen(arg->value) + strlen(current->value)+1);
+			strcat(arg->value,current->value);	
 			break;
 		case T_QUOTE:;
 			//enter a litteral string
 			AST_node *string = new_arg(context);
-			if(!string->value)string->value = strdup("");
 			destroy_token(current);
 			current = next_token(&text);
 			while(current->type != T_QUOTE){
