@@ -32,6 +32,7 @@ struct op operators[]={
 	OP(T_SPACE,"\t"),
 	OP(T_QUOTE,"'"),
 	OP(T_DQUOTE,"\""),
+	OP(T_HASH,"#"),
 };
 
 const char *token2str(token *t){
@@ -88,11 +89,14 @@ token *next_token(const char **p){
 	if(!*p)return NULL;
 	token *new = malloc(sizeof(token));
 	memset(new,0,sizeof(token));
+
+	//if aready at the end return EOF
 	if(!**p){
 		new->type = T_EOF;
 		*p = NULL;
 		return new;
 	}
+	
 	int op = get_operator(*p);
 	if(op < 0){
 		const char *end = end_of_str(*p);
@@ -107,8 +111,6 @@ token *next_token(const char **p){
 }
 
 void destroy_token(token *t){
-	if(t->type == T_STR){
-		free(t->value);
-	}
+	free(t->value);
 	free(t);
 }

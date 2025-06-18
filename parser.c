@@ -131,10 +131,17 @@ AST_node *parser(const char *text){
 			break;
 		case T_INFERIOR:
 		case T_SUPERIOR:
-			//if(current->next->type != T_STR) syntax_error();
-			//skip the string
+			destroy_token(current);
+
+			//go to the next
 			current = next_token(&text);
 			//TODO : create file ??? change flags on AST node ???
+			break;
+		case T_HASH:
+			while(current->type != T_NEWLINE && current->type != T_EOF){
+				destroy_token(current);
+				current = next_token(&text);
+			}
 			break;
 		default:
 			break;
