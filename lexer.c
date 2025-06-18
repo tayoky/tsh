@@ -31,6 +31,7 @@ struct op operators[]={
 	OP(T_QUOTE,"'"),
 	OP(T_DQUOTE,"\""),
 	OP(T_HASH,"#"),
+	OP(T_DOLLAR,"$"),
 };
 
 const char *token2str(token *t){

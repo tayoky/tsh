@@ -51,6 +51,8 @@ AST_node *new_arg(token *prev,AST_node **last_arg,AST_node **last_cmd,AST_node *
 }
 
 #define context prev,&last_arg,&last_cmd,&current_top
+#define append(arg,str) arg->value = realloc(arg->value,strlen(arg->value)+strlen(str)+1);\
+strcat(arg->value,str)
 
 AST_node *parser(const char *text){
 	AST_node *first_expr = new_node();
@@ -70,8 +72,7 @@ AST_node *parser(const char *text){
 			break;
 		case T_STR:;
 			AST_node *arg = new_arg(context);
-			arg->value = realloc(arg->value,strlen(arg->value) + strlen(current->value)+1);
-			strcat(arg->value,current->value);	
+			append(arg,current->value);	
 			break;
 		case T_QUOTE:;
 			//enter a litteral string
@@ -81,16 +82,30 @@ AST_node *parser(const char *text){
 			while(current->type != T_QUOTE){
 				if(current->type == T_EOF){
 					syntax_error();
-				} else if(current->type == T_STR){
-					string->value = realloc(string->value,strlen(string->value) + strlen(current->value) + 1);
-					strcat(string->value,current->value);
 				} else {
-					const char *tok = token2str(current);
-					string->value = realloc(string->value,strlen(string->value) + strlen(tok) + 1);
-					strcat(string->value,tok);
+					append(string,token2str(current));
 				}
 				destroy_token(current);
 				current = next_token(&text);
+			}
+			break;
+		case T_DOLLAR:
+			destroy_token(current);
+			current = next_token(&text);
+			AST_node *str = new_arg(context);
+			char buf[32];
+			switch(current->type){
+			case T_DOLLAR:
+				sprintf(buf,"%d",getpid());
+				append(str,buf);
+				break;
+			case T_STR:
+				if(getenv(current->value)){
+					append(str,getenv(current->value));
+				}
+				break;
+			default:
+				syntax_error();
 			}
 			break;
 		case T_OR:

@@ -40,6 +40,7 @@ typedef struct AST_node {
 #define T_SUPERIOR    '>'
 #define T_NEWLINE     '\n'
 #define T_HASH        '#'
+#define T_DOLLAR      '$'
 
 #define AST_NULL    0
 #define AST_EXPR    1
