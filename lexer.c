@@ -28,8 +28,6 @@ struct op operators[]={
 	OP(T_INFERIOR,"<"),
 	OP(T_SUPERIOR,">"),
 	OP(T_NEWLINE,"\n"),
-	OP(T_SPACE," "),
-	OP(T_SPACE,"\t"),
 	OP(T_QUOTE,"'"),
 	OP(T_DQUOTE,"\""),
 	OP(T_HASH,"#"),
@@ -37,10 +35,11 @@ struct op operators[]={
 
 const char *token2str(token *t){
 	switch(t->type){
-	case T_SPACE:
-		return " ";
 	case T_NEWLINE:
 		return "\n";
+	case T_STR:
+	case T_SPACE:
+		return t->value;
 	default:
 		return token_name(t);
 	}
@@ -79,6 +78,7 @@ static int get_operator(const char *str){
 static const char *end_of_str(const char *str){
 	for(;;){
 		if(!*str)break;
+		if(isblank((unsigned char)*str))break;
 		if(get_operator(str) >= 0)break;
 		str++;
 	}
@@ -96,13 +96,25 @@ token *next_token(const char **p){
 		*p = NULL;
 		return new;
 	}
-	
+
+	//if blank just extract every blank
+	if(isblank((unsigned char)**p)){
+		const char *end = *p;
+		while(isblank((unsigned char)*end)){
+			end++;
+		}
+
+		new->type = T_SPACE;
+		new->value = strndup(*p,end - *p);
+		*p = end;
+		return new;
+	}
 	int op = get_operator(*p);
 	if(op < 0){
 		const char *end = end_of_str(*p);
+		new->type = T_STR;
 		new->value = strndup(*p,end - *p);
 		*p = end;
-		new->type = T_STR;
 	} else {
 		*p += operators[op].len;
 		new->type = operators[op].type;
