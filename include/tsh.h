@@ -48,7 +48,13 @@ typedef struct AST_node {
 #define AST_ARG     3
 #define AST_AND     4
 #define AST_OR      5
-#define AST_BG      6
+#define AST_PIPE    6
+#define AST_BG      7
+
+typedef struct lexer_context {
+	FILE *file;
+	char prev;
+} lexer_context;
 
 #define arraylen(ar) (sizeof(ar)/sizeof(*ar))
 extern int lock;

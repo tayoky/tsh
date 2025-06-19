@@ -110,6 +110,7 @@ AST_node *parser(const char *text){
 			break;
 		case T_OR:
 		case T_AND:
+		case T_PIPE:
 			if(!last_cmd)syntax_error();
 
 			AST_node *op = new_node();
@@ -119,6 +120,9 @@ AST_node *parser(const char *text){
 				break;
 			case T_AND:
 				op->type = AST_AND;
+				break;
+			case T_PIPE:
+				op->type = AST_PIPE;
 				break;
 			}
 
