@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <errno.h>
+#include <poll.h>
 #include "tsh.h"
 #include "malloc-check.h"
 
@@ -27,6 +29,7 @@ struct op operators[]={
 	OP(T_SEMI_COLON,";"),
 	OP(T_INFERIOR,"<"),
 	OP(T_SUPERIOR,">"),
+	OP(T_NEWLINE,"\r"),
 	OP(T_NEWLINE,"\n"),
 	OP(T_QUOTE,"'"),
 	OP(T_DQUOTE,"\""),
@@ -65,59 +68,83 @@ const char *token_name(token *t){
 	return "<unknow>";
 }
 
-
-static int get_operator(const char *str){
-	for(size_t i=0; i<arraylen(operators); i++){
-		if(!memcmp(str,operators[i].str,operators[i].len)){
-			return i;
+static int get_operator(FILE *file){
+	int c = fgetc(file);
+	int best_match = -1;
+	size_t size = 1;
+	char str[8];
+	str[0] = c;
+	str[1] = '\0';
+	for(size_t i=0; i < arraylen(operators); i++){
+		if(size == operators[i].len && !memcmp(str,operators[i].str,operators[i].len)){
+			best_match = i;
+			//if we find a \n no token as anything after a \n
+			//so we can return
+			if(c == '\n')return i;
+			c = fgetc(file);
+			if(c == EOF)return i;
+			str[size] = c;
+			size++;
+			str[size] = '\0';
+			i = 0;
 		}
 	}
 
-	return -1;
+	ungetc(c,file);
+	return best_match;
 }
 
-static const char *end_of_str(const char *str){
-	for(;;){
-		if(!*str)break;
-		if(isblank((unsigned char)*str))break;
-		if(get_operator(str) >= 0)break;
-		str++;
-	}
-	return str;
-}
 
-token *next_token(const char **p){
-	if(!*p)return NULL;
+token *next_token(FILE *file){
 	token *new = malloc(sizeof(token));
 	memset(new,0,sizeof(token));
 
 	//if aready at the end return EOF
-	if(!**p){
+	int c = fgetc(file);
+	if(c == EOF){
 		new->type = T_EOF;
-		*p = NULL;
 		return new;
 	}
 
 	//if blank just extract every blank
-	if(isblank((unsigned char)**p)){
-		const char *end = *p;
-		while(isblank((unsigned char)*end)){
-			end++;
+	if(isblank(c)){
+		new->type = T_SPACE;
+		new->value = strdup("");
+		size_t size = 1;
+
+		while(isblank(c)){
+			size++;
+			new->value = realloc(new->value,size);
+			new->value[size-2] = c;
+			new->value[size-1] = '\0';
+			c = fgetc(file);
 		}
 
-		new->type = T_SPACE;
-		new->value = strndup(*p,end - *p);
-		*p = end;
+		ungetc(c,file);
 		return new;
-	}
-	int op = get_operator(*p);
-	if(op < 0){
-		const char *end = end_of_str(*p);
-		new->type = T_STR;
-		new->value = strndup(*p,end - *p);
-		*p = end;
 	} else {
-		*p += operators[op].len;
+		ungetc(c,file);
+	}
+
+	int op = get_operator(file);
+	if(op < 0){
+		new->type = T_STR;
+		new->value = strdup("");
+		size_t size = 1;
+		int c;
+		while((c = fgetc(file)) != EOF){
+			if(isblank(c))b: break;
+			//check if we are at the start of a new op
+			for(size_t i=0; i<arraylen(operators); i++){
+				if(c == operators[i].str[0])goto b;
+			}
+			size++;
+			new->value = realloc(new->value,size);
+			new->value[size-2] = c;
+			new->value[size-1] = '\0';
+		}
+		ungetc(c,file);
+	} else {
 		new->type = operators[op].type;
 	}
 	return new;

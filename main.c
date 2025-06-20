@@ -31,19 +31,8 @@ int script_mode(const char *path){
 		printf("%s : %s\n",path,strerror(errno));
 		exit(-1);
 	}
-	//find size
-	fseek(file,0,SEEK_END);
-	size_t size = ftell(file);
-
-	//read the entire file into memory
-	char *content = malloc(size + 1);
-	fseek(file,0,SEEK_SET);
-	if(fread(content,1,size,file) < 0){
-		error("fread : %s",strerror(errno));
-	}
-	content[size] = '\0';
+	interpret(file);
 	fclose(file);
-	interpret(content);
 	return 0;
 }
 
@@ -66,13 +55,10 @@ int shell_mode(void){
 		} else {
 			printf("%s $ ",cwd);
 		}
-		char *line = prompt();
 
 
-		//execute the line
-		interpret(line);
+		interpret(stdin);
 
-		free(line);
 	}
 
 	return 0;

@@ -54,7 +54,7 @@ AST_node *new_arg(token *prev,AST_node **last_arg,AST_node **last_cmd,AST_node *
 #define append(arg,str) arg->value = realloc(arg->value,strlen(arg->value)+strlen(str)+1);\
 strcat(arg->value,str)
 
-AST_node *parser(const char *text){
+AST_node *parser(FILE *file){
 	AST_node *first_expr = new_node();
 	first_expr->type = AST_EXPR;
 	AST_node *last_expr = first_expr;
@@ -65,7 +65,7 @@ AST_node *parser(const char *text){
 
 	token *prev = NULL;
 
-	token *current = next_token(&text);
+	token *current = next_token(file);
 	while(current){
 		switch(current->type){
 		case T_EOF:
@@ -78,7 +78,7 @@ AST_node *parser(const char *text){
 			//enter a litteral string
 			AST_node *string = new_arg(context);
 			destroy_token(current);
-			current = next_token(&text);
+			current = next_token(file);
 			while(current->type != T_QUOTE){
 				if(current->type == T_EOF){
 					syntax_error();
@@ -86,12 +86,12 @@ AST_node *parser(const char *text){
 					append(string,token2str(current));
 				}
 				destroy_token(current);
-				current = next_token(&text);
+				current = next_token(file);
 			}
 			break;
 		case T_DOLLAR:
 			destroy_token(current);
-			current = next_token(&text);
+			current = next_token(file);
 			AST_node *str = new_arg(context);
 			char buf[32];
 			switch(current->type){
@@ -137,8 +137,7 @@ AST_node *parser(const char *text){
 			last_cmd = NULL;
 			break;
 		case T_NEWLINE:
-			if(!last_cmd)break;
-			//falltrought
+			goto finish;
 		case T_SEMI_COLON:
 			if(!last_cmd)syntax_error();
 			AST_node *new_expr = new_node();
@@ -154,13 +153,13 @@ AST_node *parser(const char *text){
 			destroy_token(current);
 
 			//go to the next
-			current = next_token(&text);
+			current = next_token(file);
 			//TODO : create file ??? change flags on AST node ???
 			break;
 		case T_HASH:
 			while(current->type != T_NEWLINE && current->type != T_EOF){
 				destroy_token(current);
-				current = next_token(&text);
+				current = next_token(file);
 			}
 			break;
 		default:
@@ -168,9 +167,9 @@ AST_node *parser(const char *text){
 		}
 		if(prev)destroy_token(prev);
 		prev = current;
-		current = next_token(&text);
+		current = next_token(file);
 	}
-
+finish:
 	if(prev)destroy_token(prev);
 
 	return first_expr;

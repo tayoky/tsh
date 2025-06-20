@@ -70,14 +70,14 @@ void init(int argc,char **argv);
 
 char *prompt();
 
-int interpret(const char *text);
+int interpret(FILE *file);
 
-token *next_token(const char **p);
+token *next_token(FILE *file);
 void destroy_token(token *);
 const char *token_name(token *);
 const char *token2str(token *);
 
-AST_node *parser(const char *text);
+AST_node *parser(FILE *file);
 AST_node *ast_cleanup(AST_node *);
 
 #endif
