@@ -68,8 +68,6 @@ extern builtin builtin_cmd[7];
 
 void init(int argc,char **argv);
 
-char *prompt();
-
 int interpret(FILE *file);
 
 token *next_token(FILE *file);

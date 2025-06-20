@@ -11,7 +11,7 @@ int main(int argc,char **argv){
 		return shell_mode();
 	} else {
 		if(!strcmp(argv[1],"--version")){
-			return interpret("version");
+			printf("tsh3 v0.1.0\n");
 		}
 		if(!strcmp(argv[1],"-c")){
 			//execute one single command
@@ -19,7 +19,10 @@ int main(int argc,char **argv){
 				printf("tsh : -c option require one argument\n");
 				return -1;
 			}
-			return interpret(strdup(argv[2]));
+			FILE *cmd = tmpfile();
+			fputs(argv[2],cmd);
+			rewind(cmd);
+			return interpret(cmd);
 		}
 		return script_mode(argv[1]);
 	}

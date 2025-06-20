@@ -68,8 +68,6 @@ AST_node *parser(FILE *file){
 	token *current = next_token(file);
 	while(current){
 		switch(current->type){
-		case T_EOF:
-			break;
 		case T_STR:;
 			AST_node *arg = new_arg(context);
 			append(arg,current->value);	
@@ -136,6 +134,7 @@ AST_node *parser(FILE *file){
 			last_arg = NULL;
 			last_cmd = NULL;
 			break;
+		case T_EOF:
 		case T_NEWLINE:
 			goto finish;
 		case T_SEMI_COLON:
