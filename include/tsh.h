@@ -58,6 +58,7 @@ typedef struct lexer_context {
 
 #define arraylen(ar) (sizeof(ar)/sizeof(*ar))
 extern int lock;
+extern int signal_control;
 
 void error(const char *fmt,...);
 

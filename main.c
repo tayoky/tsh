@@ -15,6 +15,7 @@ int main(int argc,char **argv){
 		}
 		if(!strcmp(argv[1],"-c")){
 			//execute one single command
+			signal_control = 0;
 			if(argc < 3){
 				printf("tsh : -c option require one argument\n");
 				return -1;
@@ -29,6 +30,7 @@ int main(int argc,char **argv){
 }
 
 int script_mode(const char *path){
+	signal_control = 0;
 	FILE *file = fopen(path,"r");
 	if(file == NULL){
 		printf("%s : %s\n",path,strerror(errno));

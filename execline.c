@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <termios.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include "tsh.h"
@@ -16,12 +17,18 @@ typedef struct exec_context {
 int lock = 0;
 int exit_code;
 int running_cmd = 0;
+int signal_control = 1;
 
 int wait_cmd(){
 	int status = 0;
 	while(running_cmd > 0){
 		wait(&status);
 		running_cmd--;
+	}
+	if(signal_control){
+		if(tcsetpgrp(STDIN_FILENO,getpid()) < 0){
+			error("tcsetpgrp : %s",strerror(errno));
+		}
 	}
 	return status;
 }
@@ -39,6 +46,7 @@ int launch(exec_context *context,char *const*args){
 	if(!child){
 		dup2(context->in,STDIN_FILENO);
 		dup2(context->out,STDOUT_FILENO);
+		if(signal_control)setpgid(getpid(),0);
 		execvp(args[0],args);
 		error("%s : %s",args[0],strerror(errno));
 		exit(1);
@@ -47,7 +55,13 @@ int launch(exec_context *context,char *const*args){
 		error("fork : %s",strerror(errno));
 		return 1;
 	}
-	
+	fflush(stdout);
+	if(signal_control){
+		if(tcsetpgrp(STDIN_FILENO,child) < 0){
+			error("tcsetpgrp : %s",strerror(errno));
+		}
+	}
+
 	running_cmd++;
 	return 0;
 }
