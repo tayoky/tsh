@@ -170,6 +170,7 @@ AST_node *parser(FILE *file){
 	}
 finish:
 	if(prev)destroy_token(prev);
+	if(current)destroy_token(current);
 
 	return first_expr;
 }
